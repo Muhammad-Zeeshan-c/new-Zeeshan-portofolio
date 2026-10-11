@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const AdminContext = createContext();
 
@@ -26,11 +27,11 @@ export const AdminProvider = ({ children }) => {
       const sessionData = localStorage.getItem('adminSession');
       if (sessionData) {
         try {
-          const { timestamp, authenticated, adminId } = JSON.parse(sessionData);
+          const { timestamp, authenticated, adminId, token } = JSON.parse(sessionData);
           const now = new Date().getTime();
           
           // Check if session is still valid (30 minutes)
-          if (authenticated && adminId && (now - timestamp) < SESSION_DURATION) {
+          if (authenticated && token && (now - timestamp) < SESSION_DURATION) {
             setIsAuthenticated(true);
             setAdminData({ id: adminId });
           } else {
@@ -70,57 +71,45 @@ export const AdminProvider = ({ children }) => {
     }
   }, [isAuthenticated, SESSION_DURATION]);
 
-  // Login function with database verification
+  // Login function – calls Express backend /api/auth/login
   const login = async (username, password) => {
     // Check if account is locked
     if (lockoutTime && new Date().getTime() < lockoutTime) {
       const remainingTime = Math.ceil((lockoutTime - new Date().getTime()) / 1000 / 60);
-      throw new Error(`Account terkunci. Coba lagi dalam ${remainingTime} menit.`);
+      throw new Error(`Account locked. Please try again in ${remainingTime} minutes.`);
     }
 
     try {
-      // Call Supabase RPC function to verify login
-      const { data, error } = await supabase.rpc('verify_admin_login', {
-        p_username: username,
-        p_password: password
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
       });
 
-      if (error) {
-        console.error('Login error:', error);
-        throw new Error('Terjadi kesalahan saat login. Silakan coba lagi.');
-      }
+      const data = await response.json();
 
-      // Check if login successful
-      if (data && data.length > 0 && data[0].success) {
-        const admin = data[0];
-        
-        // Update last login timestamp
-        await supabase.rpc('update_admin_last_login', {
-          p_admin_id: admin.admin_id
-        });
-
-        // Create session
+      if (response.ok && data.success) {
+        // Successfully authenticated via backend
         const sessionData = {
           authenticated: true,
           timestamp: new Date().getTime(),
-          adminId: admin.admin_id,
-          username: admin.username,
-          email: admin.email,
-          fullName: admin.full_name
+          adminId: data.admin?.username || 'admin',
+          username: data.admin?.username || 'admin',
+          fullName: data.admin?.name || 'Muhammad Zeeshan',
+          token: data.token // JWT token from backend
         };
         
         localStorage.setItem('adminSession', JSON.stringify(sessionData));
         setIsAuthenticated(true);
         setAdminData({
-          id: admin.admin_id,
-          username: admin.username,
-          email: admin.email,
-          fullName: admin.full_name
+          id: data.admin?.username || 'admin',
+          username: data.admin?.username || 'admin',
+          fullName: data.admin?.name || 'Muhammad Zeeshan'
         });
         setLoginAttempts(0);
         setLockoutTime(null);
         
-        console.log('✅ Admin logged in successfully:', admin.username);
+        console.log('✅ Admin logged in successfully via backend');
         return true;
       } else {
         // Failed login
@@ -129,21 +118,21 @@ export const AdminProvider = ({ children }) => {
 
         // Lock account after 3 failed attempts for 15 minutes
         if (newAttempts >= 3) {
-          const lockTime = new Date().getTime() + (15 * 60 * 1000); // 15 minutes
+          const lockTime = new Date().getTime() + (15 * 60 * 1000);
           setLockoutTime(lockTime);
-          throw new Error('Terlalu banyak percobaan login yang gagal. Account terkunci selama 15 menit.');
+          throw new Error('Too many failed login attempts. Account locked for 15 minutes.');
         }
 
-        throw new Error(`Username atau password salah. Sisa percobaan: ${3 - newAttempts}`);
+        throw new Error(data.message || `Invalid credentials. Remaining attempts: ${3 - newAttempts}`);
       }
     } catch (err) {
-      // If error already thrown, re-throw it
-      if (err.message.includes('Account terkunci') || err.message.includes('Username atau password salah')) {
+      // If error already thrown from our logic (like Account locked or backend 401), re-throw
+      if (err.message && err.message !== 'Connection error. Make sure the backend server is running.') {
         throw err;
       }
       
       console.error('Login error:', err);
-      throw new Error('Terjadi kesalahan saat login. Silakan coba lagi.');
+      throw new Error('Connection error. Make sure the backend server is running.');
     }
   };
 
@@ -160,15 +149,12 @@ export const AdminProvider = ({ children }) => {
   // Extend session
   const extendSession = () => {
     if (isAuthenticated && adminData) {
-      const sessionData = {
-        authenticated: true,
-        timestamp: new Date().getTime(),
-        adminId: adminData.id,
-        username: adminData.username,
-        email: adminData.email,
-        fullName: adminData.fullName
-      };
-      localStorage.setItem('adminSession', JSON.stringify(sessionData));
+      const existing = localStorage.getItem('adminSession');
+      if (existing) {
+        const parsed = JSON.parse(existing);
+        parsed.timestamp = new Date().getTime();
+        localStorage.setItem('adminSession', JSON.stringify(parsed));
+      }
     }
   };
 
@@ -201,4 +187,4 @@ export const AdminProvider = ({ children }) => {
       {children}
     </AdminContext.Provider>
   );
-};
+};

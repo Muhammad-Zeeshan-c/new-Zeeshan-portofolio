@@ -63,9 +63,8 @@ export default defineConfig({
       'react-dom',
       'framer-motion',
       'three',
-    ],
-    exclude: [
-      '@splinetool/runtime', // Exclude heavy runtime
+      '@splinetool/react-spline',
+      '@splinetool/runtime',
     ],
   },
 })

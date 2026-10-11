@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
@@ -8,9 +8,9 @@ import { AdminProvider } from './contexts/AdminContext';
 import { useTheme } from './contexts/ThemeContext';
 import FloatingThemeToggle from './components/FloatingThemeToggle';
 
-// Pages
-import Home from './pages/Home';
-import Gallery from './pages/Gallery';
+// Pages — code-split so each page loads only when visited
+const Home = lazy(() => import('./pages/Home'));
+const Gallery = lazy(() => import('./pages/Gallery'));
 
 function App() {
   const { theme } = useTheme();
@@ -37,10 +37,12 @@ function App() {
 
           {/* Page Routing with Transitions */}
           <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/gallery" element={<Gallery />} />
-            </Routes>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center dark:text-cyan-400 text-cyan-600 font-cascadia">Loading...</div>}>
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<Home />} />
+                <Route path="/gallery" element={<Gallery />} />
+              </Routes>
+            </Suspense>
           </AnimatePresence>
 
           <FloatingThemeToggle />

@@ -4,7 +4,6 @@ import {
   FaProjectDiagram,
   FaCertificate,
   FaEnvelope,
-  FaComments,
   FaPlus,
   FaEdit,
   FaTrash,
@@ -12,24 +11,23 @@ import {
   FaSave,
   FaEye,
   FaCheck,
-  FaHeart,
-  FaCalendar,
-  FaUser,
-  FaLink,
   FaImage,
-  FaTags,
   FaStar,
-  FaThumbtack
+  FaFilePdf,
+  FaDownload,
+  FaUpload,
+  FaCheckCircle,
+  FaRegEnvelopeOpen
 } from 'react-icons/fa';
-import { supabase } from '../lib/supabase';
+import apiService from '../services/api';
 
 const AdminDashboard = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('projects');
   const [projects, setProjects] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [comments, setComments] = useState([]);
   const [gallery, setGallery] = useState([]);
+  const [activeCV, setActiveCV] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -39,6 +37,7 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     title: '',
     description: '',
     image_url: '',
+    image_public_id: '',
     demo_url: '',
     github_url: '',
     tags: '',
@@ -50,30 +49,29 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     issuer: '',
     issue_date: '',
     credential_url: '',
-    image_url: ''
+    image_url: '',
+    image_public_id: '',
+    pdf_url: '',
+    pdf_public_id: ''
   });
 
-  // Gallery Form State
   const [galleryForm, setGalleryForm] = useState({
     title: '',
     description: '',
     media_url: '',
+    public_ids: [],
     type: 'image',
     date: new Date().toISOString().split('T')[0],
   });
 
   // File upload states
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [projectImageFile, setProjectImageFile] = useState(null);
-  const [certificateImageFile, setCertificateImageFile] = useState(null);
-  const [certificatePdfFile, setCertificatePdfFile] = useState(null);
-  const [galleryMediaFile, setGalleryMediaFile] = useState(null); // New for gallery
+  const [cvUploading, setCvUploading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       fetchData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, activeTab]);
 
   const fetchData = async () => {
@@ -89,8 +87,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
         case 'messages':
           await fetchMessages();
           break;
-        case 'comments':
-          await fetchComments();
+        case 'cv':
+          await fetchCV();
           break;
         case 'gallery':
           await fetchGallery();
@@ -105,417 +103,296 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     }
   };
 
-  const fetchGallery = async () => {
-    const { data, error } = await supabase
-      .from('gallery')
-      .select('*')
-      .order('date', { ascending: false });
-    if (data) setGallery(data);
-    if (error) console.error('Error fetching gallery:', error);
-  };
-
   const fetchProjects = async () => {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (data) setProjects(data);
-    if (error) console.error('Error fetching projects:', error);
+    const data = await apiService.getProjects();
+    setProjects(data);
   };
 
   const fetchCertificates = async () => {
-    const { data, error } = await supabase
-      .from('certificates')
-      .select('*')
-      .order('issue_date', { ascending: false });
-    if (data) setCertificates(data);
-    if (error) console.error('Error fetching certificates:', error);
+    const data = await apiService.getCertificates();
+    setCertificates(data);
   };
 
   const fetchMessages = async () => {
-    const { data, error } = await supabase
-      .from('contact_messages')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (data) setMessages(data);
-    if (error) console.error('Error fetching messages:', error);
+    const data = await apiService.getContactMessages();
+    setMessages(data);
   };
 
-  const fetchComments = async () => {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .order('is_pinned', { ascending: false })  // Pinned first
-      .order('created_at', { ascending: false }); // Then by date
-    if (data) setComments(data);
-    if (error) console.error('Error fetching comments:', error);
+  const fetchCV = async () => {
+    const data = await apiService.getActiveCV();
+    setActiveCV(data);
   };
 
-  // FILE UPLOAD Functions
-  const uploadFile = async (file, bucket, folder = '') => {
-    try {
-      setUploadingFile(true);
-
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) throw error;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
-
-      setUploadingFile(false);
-      return publicUrl;
-    } catch (error) {
-      setUploadingFile(false);
-      console.error('Error uploading file:', error);
-      throw error;
-    }
+  const fetchGallery = async () => {
+    const data = await apiService.getGallery();
+    setGallery(data);
   };
 
+  // Upload Project Image to Cloudinary via Express Backend
   const handleProjectImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      alert('Please upload an image file (JPEG, PNG, WEBP)');
       return;
     }
 
     try {
-      setProjectImageFile(file);
-      const imageUrl = await uploadFile(file, 'project-images', 'projects/');
-      setProjectForm(prev => ({ ...prev, image_url: imageUrl }));
-      alert('Image uploaded successfully!');
+      setUploadingFile(true);
+      const res = await apiService.uploadFile(file, 'portfolio/projects');
+      if (res.success) {
+        setProjectForm(prev => ({
+          ...prev,
+          image_url: res.url,
+          image_public_id: res.public_id
+        }));
+        alert('Project image uploaded to Cloudinary! 📸');
+      } else {
+        throw new Error(res.message);
+      }
     } catch (error) {
       alert('Failed to upload image: ' + error.message);
-    }
-  };
-
-  const handleCertificateImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
-      return;
-    }
-
-    try {
-      setCertificateImageFile(file);
-      const imageUrl = await uploadFile(file, 'certificate-images', 'certificates/');
-      setCertificateForm(prev => ({ ...prev, image_url: imageUrl }));
-      alert('Certificate image uploaded successfully!');
-    } catch (error) {
-      alert('Failed to upload certificate image: ' + error.message);
-    }
-  };
-
-  const handleCertificatePdfUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert('PDF size should be less than 10MB');
-      return;
-    }
-
-    try {
-      setCertificatePdfFile(file);
-      const pdfUrl = await uploadFile(file, 'certificates', 'pdfs/');
-      setCertificateForm(prev => ({ ...prev, credential_url: pdfUrl }));
-      alert('Certificate PDF uploaded successfully!');
-    } catch (error) {
-      alert('Failed to upload PDF: ' + error.message);
-    }
-  };
-
-  const handleGalleryMediaUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    setUploadingFile(true);
-    const uploadedUrls = [];
-    let hasError = false;
-
-    // Check file type based on selected type (image or video)
-    const isVideo = galleryForm.type === 'video';
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // Increased limits
-
-    try {
-      for (const file of files) {
-        if (isVideo && !file.type.startsWith('video/')) {
-          alert(`File ${file.name} is not a video.`);
-          continue;
-        }
-        if (!isVideo && !file.type.startsWith('image/')) {
-          alert(`File ${file.name} is not an image.`);
-          continue;
-        }
-        if (file.size > maxSize) {
-          alert(`File ${file.name} exceeds size limit.`);
-          continue;
-        }
-
-        try {
-          // Bucket: 'gallery-media'
-          const mediaUrl = await uploadFile(file, 'gallery-media', `${galleryForm.type}s/`);
-          uploadedUrls.push(mediaUrl);
-        } catch (err) {
-          console.error(`Failed to upload ${file.name}:`, err);
-          hasError = true;
-        }
-      }
-
-      if (uploadedUrls.length > 0) {
-        const currentUrls = galleryForm.media_urls || [];
-        const newUrls = [...currentUrls, ...uploadedUrls];
-        setGalleryForm(prev => ({
-          ...prev,
-          media_urls: newUrls,
-          media_url: newUrls[0] // Fallback for backward compatibility
-        }));
-        if (!hasError) alert('All media uploaded successfully!');
-        else alert('Some files uploaded, but errors occurred with others.');
-      }
-    } catch (error) {
-      alert('Upload process failed: ' + error.message);
     } finally {
       setUploadingFile(false);
     }
   };
 
-  // CREATE Operations
-  const createProject = async () => {
+  // Upload Certificate Image
+  const handleCertificateImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     try {
-      const tagsArray = projectForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-      const { error } = await supabase
-        .from('projects')
-        .insert([{
-          ...projectForm,
-          tags: tagsArray
-        }]);
-
-      if (error) throw error;
-
-      alert('Project created successfully!');
-      resetProjectForm();
-      setIsCreating(false);
-      fetchProjects();
+      setUploadingFile(true);
+      const res = await apiService.uploadFile(file, 'portfolio/certificates');
+      if (res.success) {
+        setCertificateForm(prev => ({
+          ...prev,
+          image_url: res.url,
+          image_public_id: res.public_id
+        }));
+        alert('Certificate image uploaded! 🏆');
+      } else {
+        throw new Error(res.message);
+      }
     } catch (error) {
-      console.error('Error creating project:', error);
-      alert('Failed to create project: ' + error.message);
+      alert('Upload failed: ' + error.message);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
-  const createCertificate = async () => {
+  // Upload Certificate PDF
+  const handleCertificatePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     try {
-      const { error } = await supabase
-        .from('certificates')
-        .insert([certificateForm]);
-
-      if (error) throw error;
-
-      alert('Certificate created successfully!');
-      resetCertificateForm();
-      setIsCreating(false);
-      fetchCertificates();
+      setUploadingFile(true);
+      const res = await apiService.uploadFile(file, 'portfolio/certificates/pdfs');
+      if (res.success) {
+        setCertificateForm(prev => ({
+          ...prev,
+          pdf_url: res.url,
+          pdf_public_id: res.public_id,
+          credential_url: res.url
+        }));
+        alert('Certificate PDF uploaded! 📄');
+      } else {
+        throw new Error(res.message);
+      }
     } catch (error) {
-      console.error('Error creating certificate:', error);
-      alert('Failed to create certificate: ' + error.message);
+      alert('Upload failed: ' + error.message);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
-  // UPDATE Operations
-  const updateProject = async () => {
+  // Upload CV PDF
+  const handleCVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a valid PDF file for CV.');
+      return;
+    }
+
     try {
-      const tagsArray = typeof projectForm.tags === 'string'
-        ? projectForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
-        : projectForm.tags;
+      setCvUploading(true);
+      const res = await apiService.uploadCV(file, 'Muhammad Zeeshan - Resume');
+      if (res.success) {
+        alert('CV uploaded & replaced successfully! 📄✨');
+        fetchCV();
+      } else {
+        throw new Error(res.message || res.error);
+      }
+    } catch (error) {
+      alert('CV Upload failed: ' + error.message);
+    } finally {
+      setCvUploading(false);
+    }
+  };
 
-      const { error } = await supabase
-        .from('projects')
-        .update({
-          ...projectForm,
-          tags: tagsArray
-        })
-        .eq('id', editingItem.id);
+  // Delete Active CV
+  const handleDeleteCV = async () => {
+    if (!confirm('Are you sure you want to delete your active CV?')) return;
 
-      if (error) throw error;
+    try {
+      const res = await apiService.deleteCV();
+      if (res.success) {
+        alert('Active CV deleted successfully');
+        setActiveCV(null);
+      } else {
+        throw new Error(res.message || res.error);
+      }
+    } catch (error) {
+      alert('Failed to delete CV: ' + error.message);
+    }
+  };
 
-      alert('Project updated successfully!');
+  // PROJECT CRUD
+  const saveProject = async () => {
+    if (!projectForm.title || !projectForm.description || !projectForm.image_url) {
+      alert('Title, Description, and Image are required!');
+      return;
+    }
+
+    try {
+      if (editingItem) {
+        const res = await apiService.updateProject(editingItem._id || editingItem.id, projectForm);
+        if (res.success) {
+          alert('Project updated successfully! 🚀');
+        } else throw new Error(res.message);
+      } else {
+        const res = await apiService.createProject(projectForm);
+        if (res.success) {
+          alert('Project created successfully! 🎉');
+        } else throw new Error(res.message);
+      }
+      setIsCreating(false);
       setEditingItem(null);
       resetProjectForm();
       fetchProjects();
     } catch (error) {
-      console.error('Error updating project:', error);
-      alert('Failed to update project: ' + error.message);
+      alert('Error saving project: ' + error.message);
     }
   };
 
-  const updateCertificate = async () => {
-    try {
-      const { error } = await supabase
-        .from('certificates')
-        .update(certificateForm)
-        .eq('id', editingItem.id);
-
-      if (error) throw error;
-
-      alert('Certificate updated successfully!');
-      setEditingItem(null);
-      resetCertificateForm();
-      fetchCertificates();
-    } catch (error) {
-      console.error('Error updating certificate:', error);
-      alert('Failed to update certificate: ' + error.message);
-    }
-  };
-
-  const updateMessageStatus = async (id, status) => {
-    try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .update({ status })
-        .eq('id', id);
-
-      if (error) throw error;
-      fetchMessages();
-    } catch (error) {
-      console.error('Error updating message status:', error);
-    }
-  };
-
-  // DELETE Operations
   const deleteProject = async (id) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
+    if (!confirm('Are you sure you want to delete this project? Image will also be purged from Cloudinary.')) return;
+    try {
+      const res = await apiService.deleteProject(id);
+      if (res.success) {
+        alert('Project deleted!');
+        fetchProjects();
+      } else throw new Error(res.message);
+    } catch (error) {
+      alert('Error deleting project: ' + error.message);
+    }
+  };
+
+  // CERTIFICATE CRUD
+  const saveCertificate = async () => {
+    if (!certificateForm.title || !certificateForm.issuer) {
+      alert('Title and Issuer are required!');
+      return;
+    }
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      alert('Project deleted successfully!');
-      fetchProjects();
+      if (editingItem) {
+        const res = await apiService.updateCertificate(editingItem._id || editingItem.id, certificateForm);
+        if (res.success) alert('Certificate updated!');
+        else throw new Error(res.message);
+      } else {
+        const res = await apiService.createCertificate(certificateForm);
+        if (res.success) alert('Certificate created!');
+        else throw new Error(res.message);
+      }
+      setIsCreating(false);
+      setEditingItem(null);
+      resetCertificateForm();
+      fetchCertificates();
     } catch (error) {
-      console.error('Error deleting project:', error);
-      alert('Failed to delete project: ' + error.message);
+      alert('Error saving certificate: ' + error.message);
     }
   };
 
   const deleteCertificate = async (id) => {
-    if (!confirm('Are you sure you want to delete this certificate?')) return;
-
+    if (!confirm('Are you sure you want to delete this certificate? Files will also be purged.')) return;
     try {
-      const { error } = await supabase
-        .from('certificates')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      alert('Certificate deleted successfully!');
-      fetchCertificates();
+      const res = await apiService.deleteCertificate(id);
+      if (res.success) {
+        alert('Certificate deleted!');
+        fetchCertificates();
+      } else throw new Error(res.message);
     } catch (error) {
-      console.error('Error deleting certificate:', error);
-      alert('Failed to delete certificate: ' + error.message);
+      alert('Error deleting certificate: ' + error.message);
+    }
+  };
+
+  // MESSAGE OPERATIONS
+  const toggleReadMessage = async (id) => {
+    try {
+      const res = await apiService.toggleMessageRead(id);
+      if (res.success) fetchMessages();
+    } catch (error) {
+      alert('Error toggling read status: ' + error.message);
     }
   };
 
   const deleteMessage = async (id) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
-
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      alert('Message deleted successfully!');
-      fetchMessages();
+      const res = await apiService.deleteContactMessage(id);
+      if (res.success) fetchMessages();
     } catch (error) {
-      console.error('Error deleting message:', error);
-      alert('Failed to delete message: ' + error.message);
+      alert('Error deleting message: ' + error.message);
     }
   };
 
-  const deleteComment = async (id) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
+  // GALLERY CRUD
+  const saveGallery = async () => {
+    if (!galleryForm.title) {
+      alert('Title is required');
+      return;
+    }
 
     try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      alert('Comment deleted successfully!');
-      fetchComments();
+      if (editingItem) {
+        const res = await apiService.updateGalleryItem(editingItem._id || editingItem.id, galleryForm);
+        if (res.success) alert('Gallery updated!');
+      } else {
+        const res = await apiService.createGalleryItem(galleryForm);
+        if (res.success) alert('Gallery created!');
+      }
+      setIsCreating(false);
+      setEditingItem(null);
+      resetGalleryForm();
+      fetchGallery();
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      alert('Failed to delete comment: ' + error.message);
+      alert('Error saving gallery item: ' + error.message);
     }
   };
 
-  // ✨ NEW: Toggle pin status for comment
-  const togglePinComment = async (id, currentPinStatus) => {
+  const deleteGallery = async (id) => {
+    if (!confirm('Are you sure you want to delete this gallery item?')) return;
     try {
-      const { error } = await supabase
-        .from('comments')
-        .update({ is_pinned: !currentPinStatus })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      const action = !currentPinStatus ? 'pinned' : 'unpinned';
-      alert(`Comment ${action} successfully! 📌`);
-      fetchComments();
+      const res = await apiService.deleteGalleryItem(id);
+      if (res.success) fetchGallery();
     } catch (error) {
-      console.error('Error toggling pin status:', error);
-      alert('Failed to toggle pin status: ' + error.message);
+      alert('Error deleting gallery item: ' + error.message);
     }
   };
 
-  // Form reset functions
+  // Reset helpers
   const resetProjectForm = () => {
     setProjectForm({
       title: '',
       description: '',
       image_url: '',
+      image_public_id: '',
       demo_url: '',
       github_url: '',
       tags: '',
@@ -529,61 +406,11 @@ const AdminDashboard = ({ isOpen, onClose }) => {
       issuer: '',
       issue_date: '',
       credential_url: '',
-      image_url: ''
+      image_url: '',
+      image_public_id: '',
+      pdf_url: '',
+      pdf_public_id: ''
     });
-  };
-
-  // GALLERY OPERATIONS
-  const createGallery = async () => {
-    try {
-      const { error } = await supabase
-        .from('gallery')
-        .insert([galleryForm]);
-
-      if (error) throw error;
-      alert('Gallery item created successfully!');
-      resetGalleryForm();
-      setIsCreating(false);
-      fetchGallery();
-    } catch (error) {
-      console.error('Error creating gallery item:', error);
-      alert('Failed to create gallery item: ' + error.message);
-    }
-  };
-
-  const updateGallery = async () => {
-    try {
-      const { error } = await supabase
-        .from('gallery')
-        .update(galleryForm)
-        .eq('id', editingItem.id);
-
-      if (error) throw error;
-      alert('Gallery item updated successfully!');
-      setEditingItem(null);
-      resetGalleryForm();
-      fetchGallery();
-    } catch (error) {
-      console.error('Error updating gallery item:', error);
-      alert('Failed to update gallery item: ' + error.message);
-    }
-  };
-
-  const deleteGallery = async (id) => {
-    if (!confirm('Are you sure you want to delete this gallery item?')) return;
-    try {
-      const { error } = await supabase
-        .from('gallery')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      alert('Gallery item deleted successfully!');
-      fetchGallery();
-    } catch (error) {
-      console.error('Error deleting gallery item:', error);
-      alert('Failed to delete gallery item: ' + error.message);
-    }
   };
 
   const resetGalleryForm = () => {
@@ -591,6 +418,7 @@ const AdminDashboard = ({ isOpen, onClose }) => {
       title: '',
       description: '',
       media_url: '',
+      public_ids: [],
       type: 'image',
       date: new Date().toISOString().split('T')[0],
     });
@@ -602,27 +430,32 @@ const AdminDashboard = ({ isOpen, onClose }) => {
       setProjectForm({
         title: item.title,
         description: item.description,
-        image_url: item.image_url,
+        image_url: item.image_url || '',
+        image_public_id: item.image_public_id || '',
         demo_url: item.demo_url || '',
         github_url: item.github_url || '',
-        tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags,
+        tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags || '',
         featured: item.featured || false
       });
     } else if (type === 'certificate') {
       setCertificateForm({
         title: item.title,
         issuer: item.issuer,
-        issue_date: item.issue_date,
+        issue_date: item.issue_date || '',
         credential_url: item.credential_url || '',
-        image_url: item.image_url || ''
+        image_url: item.image_url || '',
+        image_public_id: item.image_public_id || '',
+        pdf_url: item.pdf_url || '',
+        pdf_public_id: item.pdf_public_id || ''
       });
     } else if (type === 'gallery') {
       setGalleryForm({
         title: item.title,
-        description: item.description,
-        media_url: item.media_url,
-        type: item.type,
-        date: item.date
+        description: item.description || '',
+        media_url: item.media_url || '',
+        public_ids: item.public_ids || [],
+        type: item.type || 'image',
+        date: item.date || new Date().toISOString().split('T')[0]
       });
     }
   };
@@ -630,9 +463,9 @@ const AdminDashboard = ({ isOpen, onClose }) => {
   const tabs = [
     { id: 'projects', label: 'Projects', icon: <FaProjectDiagram />, count: projects.length },
     { id: 'certificates', label: 'Certificates', icon: <FaCertificate />, count: certificates.length },
-    { id: 'gallery', label: 'Gallery', icon: <FaImage />, count: gallery.length },
+    { id: 'cv', label: 'CV / Resume', icon: <FaFilePdf />, count: activeCV ? 1 : 0 },
     { id: 'messages', label: 'Messages', icon: <FaEnvelope />, count: messages.length },
-    { id: 'comments', label: 'Comments', icon: <FaComments />, count: comments.length }
+    { id: 'gallery', label: 'Gallery', icon: <FaImage />, count: gallery.length }
   ];
 
   if (!isOpen) return null;
@@ -651,24 +484,24 @@ const AdminDashboard = ({ isOpen, onClose }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-slate-900 rounded-3xl border border-slate-700 w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-slate-900 rounded-3xl border border-slate-700 w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
         >
           {/* Header */}
-          <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-gradient-to-r from-cyan-900/20 to-emerald-900/20">
+          <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-gradient-to-r from-cyan-900/30 via-slate-900 to-emerald-900/30">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h2>
-              <p className="text-slate-400">Manage your portfolio content</p>
+              <h2 className="text-3xl font-bold text-white mb-1 font-moderniz">Admin Dashboard</h2>
+              <p className="text-slate-400 text-sm font-cascadia">MongoDB Atlas & Cloudinary Powered Portfolio Manager</p>
             </div>
             <button
               onClick={onClose}
-              className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors duration-300"
+              className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors duration-300 border border-slate-700 text-white"
             >
-              <FaTimes className="text-white text-xl" />
+              <FaTimes className="text-xl" />
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 p-6 border-b border-slate-700 overflow-x-auto">
+          {/* Navigation Tabs */}
+          <div className="flex gap-2 p-4 border-b border-slate-800 bg-slate-950/60 overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -677,695 +510,551 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                   setIsCreating(false);
                   setEditingItem(null);
                 }}
-                className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap ${activeTab === tab.id
-                  ? 'bg-gradient-to-r from-cyan-600 to-emerald-600 text-white shadow-lg'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 whitespace-nowrap text-sm ${activeTab === tab.id
+                  ? 'bg-gradient-to-r from-cyan-600 to-emerald-600 text-white shadow-lg shadow-cyan-500/20'
+                  : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white'
                   }`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
-                <span className="px-2 py-1 bg-white/20 rounded-full text-xs">{tab.count}</span>
+                <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">{tab.count}</span>
               </button>
             ))}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Content Area */}
+          <div className="flex-1 overflow-y-auto p-6 bg-slate-900/90">
             {loading ? (
-              <div className="flex items-center justify-center h-64">
+              <div className="flex flex-col items-center justify-center h-64 gap-4">
                 <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-slate-400 font-cascadia text-sm">Fetching live data from MongoDB Atlas...</p>
               </div>
             ) : (
               <>
-                {/* Projects Tab */}
+                {/* ==================== PROJECTS TAB ==================== */}
                 {activeTab === 'projects' && (
                   <div className="space-y-6">
-                    {/* Add New Button */}
                     {!isCreating && !editingItem && (
                       <button
                         onClick={() => {
                           setIsCreating(true);
                           resetProjectForm();
                         }}
-                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
+                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
                       >
                         <FaPlus />
-                        Add New Project
+                        <span>Add New Project</span>
                       </button>
                     )}
 
-                    {/* Create/Edit Form */}
                     {(isCreating || editingItem?.type === 'project') && (
-                      <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-                        <h3 className="text-2xl font-bold text-white mb-6">
+                      <div className="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl space-y-6">
+                        <h3 className="text-2xl font-bold text-white mb-4">
                           {isCreating ? 'Create New Project' : 'Edit Project'}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label className="block text-slate-400 mb-2">Title *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Title *</label>
                             <input
                               type="text"
                               value={projectForm.title}
                               onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="Project title"
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="e.g. AI Powered Portfolio"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">Tags (comma separated) *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Tags (comma separated)</label>
                             <input
                               type="text"
                               value={projectForm.tags}
                               onChange={(e) => setProjectForm({ ...projectForm, tags: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="React, Next.js, TailwindCSS"
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="React, Express, MongoDB, Langchain"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-slate-400 mb-2">Description *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Description *</label>
                             <textarea
                               value={projectForm.description}
                               onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
                               rows="3"
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="Project description"
-                            />
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="Detailed project description..."
+                            ></textarea>
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">Project Image *</label>
-                            <div className="space-y-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleProjectImageUpload}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              />
-                              {projectForm.image_url && (
-                                <div className="flex items-center gap-2">
-                                  <img src={projectForm.image_url} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-slate-600" />
-                                  <span className="text-sm text-slate-400 break-all">{projectForm.image_url}</span>
-                                </div>
-                              )}
-                              {uploadingFile && <p className="text-sm text-cyan-400">Uploading...</p>}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-slate-400 mb-2">Demo URL</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Live Demo URL</label>
                             <input
                               type="text"
                               value={projectForm.demo_url}
                               onChange={(e) => setProjectForm({ ...projectForm, demo_url: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="https://..."
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="https://myproject.com"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">GitHub URL</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">GitHub Repository URL</label>
                             <input
                               type="text"
                               value={projectForm.github_url}
                               onChange={(e) => setProjectForm({ ...projectForm, github_url: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="https://github.com/..."
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="https://github.com/username/repo"
                             />
                           </div>
-                          <div>
-                            <label className="flex items-center gap-3 text-slate-400 cursor-pointer">
+                          <div className="md:col-span-2">
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Upload Image to Cloudinary *</label>
+                            <div className="flex gap-4 items-center">
                               <input
-                                type="checkbox"
-                                checked={projectForm.featured}
-                                onChange={(e) => setProjectForm({ ...projectForm, featured: e.target.checked })}
-                                className="w-5 h-5 text-cyan-600 bg-slate-900 border-slate-600 rounded focus:ring-2 focus:ring-cyan-400/20"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProjectImageUpload}
+                                disabled={uploadingFile}
+                                className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500"
                               />
-                              <span>Featured Project</span>
-                              <FaStar className="text-yellow-400" />
+                              {uploadingFile && <div className="text-cyan-400 text-sm font-semibold animate-pulse">Uploading...</div>}
+                            </div>
+                            {projectForm.image_url && (
+                              <div className="mt-3 flex items-center gap-4">
+                                <img src={projectForm.image_url} alt="Preview" className="h-20 w-32 object-cover rounded-xl border border-slate-700" />
+                                <span className="text-xs text-emerald-400 font-mono break-all">✓ Cloudinary URL: {projectForm.image_url}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="md:col-span-2 flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              id="featured"
+                              checked={projectForm.featured}
+                              onChange={(e) => setProjectForm({ ...projectForm, featured: e.target.checked })}
+                              className="w-5 h-5 accent-cyan-500 rounded"
+                            />
+                            <label htmlFor="featured" className="text-white font-semibold flex items-center gap-2 cursor-pointer">
+                              <FaStar className="text-yellow-400" /> Mark as Featured Project
                             </label>
                           </div>
                         </div>
-                        <div className="flex gap-4 mt-6">
-                          <button
-                            onClick={isCreating ? createProject : updateProject}
-                            className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
-                          >
-                            <FaSave />
-                            {isCreating ? 'Create Project' : 'Update Project'}
-                          </button>
+                        <div className="flex justify-end gap-4 mt-6">
                           <button
                             onClick={() => {
                               setIsCreating(false);
                               setEditingItem(null);
-                              resetProjectForm();
                             }}
-                            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors duration-300"
+                            className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 font-semibold"
                           >
                             Cancel
+                          </button>
+                          <button
+                            onClick={saveProject}
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white rounded-xl hover:from-cyan-500 hover:to-emerald-500 font-semibold flex items-center gap-2"
+                          >
+                            <FaSave />
+                            Save Project
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Projects List */}
-                    <div className="grid grid-cols-1 gap-4">
-                      {projects.map(project => (
-                        <div key={project.id} className="bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-cyan-400/50 transition-all duration-300">
-                          <div className="flex gap-6">
-                            <img
-                              src={project.image_url}
-                              alt={project.title}
-                              className="w-32 h-32 object-cover rounded-xl"
-                              onError={(e) => e.target.src = 'https://via.placeholder.com/128?text=Project'}
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                    {project.title}
-                                    {project.featured && <FaStar className="text-yellow-400" />}
-                                  </h3>
-                                  <p className="text-slate-400 mt-1">{project.description}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => startEdit(project, 'project')}
-                                    className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors duration-300"
-                                    title="Edit"
-                                  >
-                                    <FaEdit className="text-white" />
-                                  </button>
-                                  <button
-                                    onClick={() => deleteProject(project.id)}
-                                    className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors duration-300"
-                                    title="Delete"
-                                  >
-                                    <FaTrash className="text-white" />
-                                  </button>
-                                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {projects.map(p => (
+                        <div key={p._id || p.id} className="bg-slate-800/80 rounded-2xl overflow-hidden border border-slate-700/80 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+                          <div className="relative h-44">
+                            <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
+                            {p.featured && (
+                              <div className="absolute top-3 right-3 bg-yellow-500 text-slate-900 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow">
+                                <FaStar /> Featured
                               </div>
-                              <div className="flex flex-wrap gap-2 mt-3">
-                                {Array.isArray(project.tags) && project.tags.map((tag, idx) => (
-                                  <span key={idx} className="px-3 py-1 bg-cyan-600/20 text-cyan-400 rounded-full text-sm">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                              <div className="flex gap-4 mt-3 text-sm text-slate-400">
-                                {project.demo_url && (
-                                  <a href={project.demo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-cyan-400">
-                                    <FaLink /> Demo
-                                  </a>
-                                )}
-                                {project.github_url && (
-                                  <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-cyan-400">
-                                    <FaLink /> GitHub
-                                  </a>
-                                )}
-                              </div>
+                            )}
+                          </div>
+                          <div className="p-5 space-y-3 flex-1">
+                            <h4 className="text-xl font-bold text-white">{p.title}</h4>
+                            <p className="text-slate-400 text-sm line-clamp-2">{p.description}</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {p.tags?.map((t, idx) => (
+                                <span key={idx} className="text-xs px-2.5 py-1 bg-cyan-950/60 text-cyan-300 rounded-md border border-cyan-800/40">
+                                  {t}
+                                </span>
+                              ))}
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Gallery Tab */}
-                {activeTab === 'gallery' && (
-                  <div className="space-y-6">
-                    {/* Add New Button */}
-                    {!isCreating && !editingItem && (
-                      <button
-                        onClick={() => {
-                          setIsCreating(true);
-                          resetGalleryForm();
-                        }}
-                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
-                      >
-                        <FaPlus />
-                        Add New Activity
-                      </button>
-                    )}
-
-                    {/* Create/Edit Form */}
-                    {(isCreating || editingItem?.type === 'gallery') && (
-                      <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-                        <h3 className="text-2xl font-bold text-white mb-6">
-                          {isCreating ? 'Create New Activity' : 'Edit Activity'}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-slate-400 mb-2">Title *</label>
-                            <input
-                              type="text"
-                              required
-                              value={galleryForm.title}
-                              onChange={(e) => setGalleryForm({ ...galleryForm, title: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-slate-400 mb-2">Date *</label>
-                            <input
-                              type="date"
-                              required
-                              value={galleryForm.date}
-                              onChange={(e) => setGalleryForm({ ...galleryForm, date: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-slate-400 mb-2">Type *</label>
-                            <select
-                              value={galleryForm.type}
-                              onChange={(e) => setGalleryForm({ ...galleryForm, type: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                          <div className="p-5 pt-0 flex gap-3">
+                            <button
+                              onClick={() => startEdit(p, 'project')}
+                              className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-xl font-semibold flex items-center justify-center gap-2"
                             >
-                              <option value="image">Image</option>
-                              <option value="video">Video</option>
-                            </select>
-                          </div>
-                          <div>
-
-                            <label className="block text-slate-400 mb-2">Media Files (Image/Video) *</label>
-                            <div className="space-y-4">
-                              {/* File Input */}
-                              <input
-                                type="file"
-                                multiple
-                                accept={galleryForm.type === 'video' ? "video/*" : "image/*"}
-                                onChange={handleGalleryMediaUpload}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              />
-                              <p className="text-xs text-slate-500">You can select multiple files to create a carousel.</p>
-
-                              {uploadingFile && <div className="text-sm text-cyan-400 animate-pulse">Uploading... Please wait.</div>}
-
-                              {/* Manual URL Input (Fallback) */}
-                              <div className="flex gap-2">
-                                <input
-                                  type="url"
-                                  placeholder="Add URL manually..."
-                                  id="manual-url-input"
-                                  className="flex-1 px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-300 focus:border-cyan-400"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const input = document.getElementById('manual-url-input');
-                                    if (input.value) {
-                                      const newUrls = [...(galleryForm.media_urls || []), input.value];
-                                      setGalleryForm(prev => ({
-                                        ...prev,
-                                        media_urls: newUrls,
-                                        media_url: newUrls[0] // Update primary thumbnail
-                                      }));
-                                      input.value = '';
-                                    }
-                                  }}
-                                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm"
-                                >
-                                  Add
-                                </button>
-                              </div>
-
-                              {/* Preview List */}
-                              {galleryForm.media_urls && galleryForm.media_urls.length > 0 && (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-                                  {galleryForm.media_urls.map((url, index) => (
-                                    <div key={index} className="relative group rounded-lg overflow-hidden border border-slate-700 bg-black/50 aspect-video flex items-center justify-center">
-                                      {galleryForm.type === 'video' ? (
-                                        <video src={url} className="w-full h-full object-cover" />
-                                      ) : (
-                                        <img src={url} alt={`Slide ${index + 1}`} className="w-full h-full object-cover" />
-                                      )}
-
-                                      {/* Remove Button */}
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const newUrls = galleryForm.media_urls.filter((_, i) => i !== index);
-                                          setGalleryForm(prev => ({
-                                            ...prev,
-                                            media_urls: newUrls,
-                                            media_url: newUrls[0] || '' // Update/Clear thumbnail
-                                          }));
-                                        }}
-                                        className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                      >
-                                        <FaTrash size={12} />
-                                      </button>
-
-                                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[10px] text-white p-1 truncate text-center">
-                                        {index === 0 ? 'Cover' : `Slide ${index + 1}`}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-slate-400 mb-2">Description</label>
-                            <textarea
-                              value={galleryForm.description}
-                              onChange={(e) => setGalleryForm({ ...galleryForm, description: e.target.value })}
-                              rows="3"
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex gap-4 mt-6">
-                          <button
-                            onClick={isCreating ? createGallery : updateGallery}
-                            disabled={uploadingFile}
-                            className={`flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${uploadingFile ? 'opacity-50 cursor-not-allowed' : 'hover:from-cyan-500 hover:to-emerald-500'}`}
-                          >
-                            <FaSave />
-                            {uploadingFile ? 'Uploading Media...' : (isCreating ? 'Create Activity' : 'Update Activity')}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsCreating(false);
-                              setEditingItem(null);
-                              resetGalleryForm();
-                            }}
-                            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors duration-300"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Gallery List */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {gallery.map(item => (
-                        <div key={item.id} className="bg-slate-800 rounded-2xl p-4 border border-slate-700 hover:border-cyan-400/50 transition-all duration-300 group">
-                          <div className="aspect-video rounded-xl bg-slate-900 overflow-hidden mb-3 relative">
-                            <img src={item.media_url} alt={item.title} className="w-full h-full object-cover" onError={(e) => e.target.src = 'https://via.placeholder.com/400x300?text=No+Media'} />
-                            <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-xs text-white capitalize">
-                              {item.type}
-                            </div>
-                          </div>
-                          <h3 className="font-bold text-white truncate">{item.title}</h3>
-                          <p className="text-slate-400 text-sm mb-3">{item.date}</p>
-                          <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => startEdit(item, 'gallery')} className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white">
-                              <FaEdit />
+                              <FaEdit /> Edit
                             </button>
-                            <button onClick={() => deleteGallery(item.id)} className="p-2 bg-red-600 hover:bg-red-500 rounded-lg text-white">
+                            <button
+                              onClick={() => deleteProject(p._id || p.id)}
+                              className="py-2.5 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold flex items-center justify-center"
+                            >
                               <FaTrash />
                             </button>
                           </div>
                         </div>
                       ))}
+                      {projects.length === 0 && !isCreating && (
+                        <div className="col-span-full text-center text-slate-400 py-16">
+                          No projects uploaded yet in MongoDB. Click "Add New Project" above!
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Certificates Tab */}
+                {/* ==================== CERTIFICATES TAB ==================== */}
                 {activeTab === 'certificates' && (
                   <div className="space-y-6">
-                    {/* Add New Button */}
                     {!isCreating && !editingItem && (
                       <button
                         onClick={() => {
                           setIsCreating(true);
                           resetCertificateForm();
                         }}
-                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
+                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
                       >
                         <FaPlus />
-                        Add New Certificate
+                        <span>Add New Certificate</span>
                       </button>
                     )}
 
-                    {/* Create/Edit Form */}
                     {(isCreating || editingItem?.type === 'certificate') && (
-                      <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-                        <h3 className="text-2xl font-bold text-white mb-6">
-                          {isCreating ? 'Create New Certificate' : 'Edit Certificate'}
+                      <div className="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl space-y-6">
+                        <h3 className="text-2xl font-bold text-white mb-4">
+                          {isCreating ? 'Add Certificate' : 'Edit Certificate'}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label className="block text-slate-400 mb-2">Title *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Title *</label>
                             <input
                               type="text"
                               value={certificateForm.title}
                               onChange={(e) => setCertificateForm({ ...certificateForm, title: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="Certificate title"
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="e.g. MERN Stack Specialist"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">Issuer *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Issuer Organization *</label>
                             <input
                               type="text"
                               value={certificateForm.issuer}
                               onChange={(e) => setCertificateForm({ ...certificateForm, issuer: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              placeholder="Issuing organization"
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="e.g. Coursera / HackerRank"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">Issue Date *</label>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Issue Date</label>
                             <input
-                              type="date"
+                              type="text"
                               value={certificateForm.issue_date}
                               onChange={(e) => setCertificateForm({ ...certificateForm, issue_date: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="e.g. Oct 2024"
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-400 mb-2">Certificate PDF</label>
-                            <div className="space-y-2">
-                              <input
-                                type="file"
-                                accept="application/pdf"
-                                onChange={handleCertificatePdfUpload}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              />
-                              {certificateForm.credential_url && (
-                                <div className="flex items-center gap-2">
-                                  <a href={certificateForm.credential_url} target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-400 hover:underline break-all">
-                                    📄 {certificateForm.credential_url}
-                                  </a>
-                                </div>
-                              )}
-                              {uploadingFile && <p className="text-sm text-cyan-400">Uploading PDF...</p>}
-                            </div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Credential / Verification URL</label>
+                            <input
+                              type="text"
+                              value={certificateForm.credential_url}
+                              onChange={(e) => setCertificateForm({ ...certificateForm, credential_url: e.target.value })}
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="https://credential-link.com"
+                            />
                           </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-slate-400 mb-2">Certificate Image (Preview)</label>
-                            <div className="space-y-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleCertificateImageUpload}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                              />
-                              {certificateForm.image_url && (
-                                <div className="flex items-center gap-2">
-                                  <img src={certificateForm.image_url} alt="Preview" className="w-32 h-20 object-cover rounded-lg border border-slate-600" />
-                                  <span className="text-sm text-slate-400 break-all">{certificateForm.image_url}</span>
-                                </div>
-                              )}
-                              {uploadingFile && <p className="text-sm text-cyan-400">Uploading image...</p>}
-                            </div>
+                          <div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Upload Certificate Image</label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleCertificateImageUpload}
+                              className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Upload Certificate PDF</label>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={handleCertificatePdfUpload}
+                              className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white"
+                            />
                           </div>
                         </div>
-                        <div className="flex gap-4 mt-6">
-                          <button
-                            onClick={isCreating ? createCertificate : updateCertificate}
-                            className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
-                          >
-                            <FaSave />
-                            {isCreating ? 'Create Certificate' : 'Update Certificate'}
-                          </button>
+                        <div className="flex justify-end gap-4 mt-6">
                           <button
                             onClick={() => {
                               setIsCreating(false);
                               setEditingItem(null);
-                              resetCertificateForm();
                             }}
-                            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors duration-300"
+                            className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 font-semibold"
                           >
                             Cancel
+                          </button>
+                          <button
+                            onClick={saveCertificate}
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white rounded-xl hover:from-cyan-500 hover:to-emerald-500 font-semibold flex items-center gap-2"
+                          >
+                            <FaSave /> Save Certificate
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Certificates List */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {certificates.map(cert => (
-                        <div key={cert.id} className="bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-cyan-400/50 transition-all duration-300">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-lg font-bold text-white">{cert.title}</h3>
-                              <p className="text-cyan-400 text-sm mt-1">{cert.issuer}</p>
-                              <p className="text-slate-400 text-sm mt-1 flex items-center gap-2">
-                                <FaCalendar />
-                                {new Date(cert.issue_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => startEdit(cert, 'certificate')}
-                                className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors duration-300"
-                                title="Edit"
-                              >
-                                <FaEdit className="text-white text-sm" />
-                              </button>
-                              <button
-                                onClick={() => deleteCertificate(cert.id)}
-                                className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors duration-300"
-                                title="Delete"
-                              >
-                                <FaTrash className="text-white text-sm" />
-                              </button>
-                            </div>
-                          </div>
-                          {cert.credential_url && (
-                            <a
-                              href={cert.credential_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-slate-400 hover:text-cyan-400 flex items-center gap-1 mt-2"
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {certificates.map(c => (
+                        <div key={c._id || c.id} className="bg-slate-800/80 rounded-2xl overflow-hidden border border-slate-700/80 p-5 space-y-4">
+                          <h4 className="text-xl font-bold text-white">{c.title}</h4>
+                          <p className="text-cyan-400 text-sm font-semibold">{c.issuer} • {c.issue_date}</p>
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              onClick={() => startEdit(c, 'certificate')}
+                              className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-xl font-semibold flex items-center justify-center gap-2"
                             >
-                              <FaLink /> View Certificate
-                            </a>
-                          )}
+                              <FaEdit /> Edit
+                            </button>
+                            <button
+                              onClick={() => deleteCertificate(c._id || c.id)}
+                              className="py-2.5 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
                         </div>
                       ))}
+                      {certificates.length === 0 && !isCreating && (
+                        <div className="col-span-full text-center text-slate-400 py-16">
+                          No certificates added yet.
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Messages Tab */}
-                {activeTab === 'messages' && (
-                  <div className="space-y-4">
-                    {messages.map(msg => (
-                      <div key={msg.id} className={`bg-slate-800 rounded-2xl p-6 border transition-all duration-300 ${msg.status === 'unread'
-                        ? 'border-cyan-400 bg-cyan-900/10'
-                        : 'border-slate-700'
-                        }`}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <FaUser className="text-cyan-400" />
-                                {msg.name}
-                              </h3>
-                              {msg.status === 'unread' && (
-                                <span className="px-3 py-1 bg-cyan-600 text-white text-xs rounded-full">NEW</span>
-                              )}
+                {/* ==================== CV / RESUME TAB ==================== */}
+                {activeTab === 'cv' && (
+                  <div className="space-y-8 max-w-3xl mx-auto">
+                    <div className="bg-slate-800/90 rounded-3xl p-8 border border-slate-700/80 shadow-2xl space-y-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-4 bg-emerald-500/20 text-emerald-400 rounded-2xl text-3xl">
+                          <FaFilePdf />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">CV / Resume Manager</h3>
+                          <p className="text-slate-400 text-sm">Upload, replace, and manage your active CV PDF file</p>
+                        </div>
+                      </div>
+
+                      {activeCV ? (
+                        <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-700/60 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FaCheckCircle className="text-emerald-400 text-xl" />
+                              <div>
+                                <h4 className="text-lg font-bold text-white">{activeCV.title}</h4>
+                                <p className="text-xs text-slate-400 font-mono">
+                                  File: {activeCV.file_name} • Last updated: {new Date(activeCV.updated_at).toLocaleDateString()}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-slate-400 text-sm mb-2">{msg.email}</p>
-                            <p className="text-white mt-3">{msg.message}</p>
-                            <p className="text-slate-500 text-xs mt-3">
-                              {new Date(msg.created_at).toLocaleString()}
-                            </p>
+                            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
+                              ACTIVE CV
+                            </span>
                           </div>
-                          <div className="flex gap-2">
-                            {msg.status === 'unread' && (
-                              <button
-                                onClick={() => updateMessageStatus(msg.id, 'read')}
-                                className="p-2 bg-green-600 hover:bg-green-500 rounded-lg transition-colors duration-300"
-                                title="Mark as read"
-                              >
-                                <FaCheck className="text-white" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => deleteMessage(msg.id)}
-                              className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors duration-300"
-                              title="Delete"
+
+                          <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-800">
+                            <a
+                              href={activeCV.pdf_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl flex items-center gap-2 shadow-lg"
                             >
-                              <FaTrash className="text-white" />
+                              <FaDownload /> View / Download PDF
+                            </a>
+                            <button
+                              onClick={handleDeleteCV}
+                              className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 font-semibold rounded-xl flex items-center gap-2"
+                            >
+                              <FaTrash /> Delete Active CV
                             </button>
                           </div>
                         </div>
+                      ) : (
+                        <div className="bg-slate-900/40 p-8 rounded-2xl border border-dashed border-slate-700 text-center space-y-3">
+                          <FaFilePdf className="text-5xl text-slate-600 mx-auto" />
+                          <p className="text-slate-300 font-medium">No Active CV Uploaded Yet</p>
+                          <p className="text-slate-500 text-xs">Upload your PDF resume below to enable public downloads</p>
+                        </div>
+                      )}
+
+                      {/* Replace / Upload Controls */}
+                      <div className="p-6 bg-slate-900/90 rounded-2xl border border-slate-700 space-y-4">
+                        <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                          <FaUpload className="text-cyan-400" />
+                          {activeCV ? 'Replace Current CV with New PDF' : 'Upload CV PDF'}
+                        </h4>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handleCVUpload}
+                          disabled={cvUploading}
+                          className="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-cyan-600 file:to-emerald-600 file:text-white hover:file:from-cyan-500 hover:file:to-emerald-500"
+                        />
+                        {cvUploading && (
+                          <p className="text-cyan-400 text-sm font-semibold animate-pulse">
+                            Uploading PDF to Cloudinary & updating database...
+                          </p>
+                        )}
                       </div>
-                    ))}
-                    {messages.length === 0 && (
-                      <div className="text-center py-12 text-slate-400">
-                        <FaEnvelope className="text-4xl mx-auto mb-4 opacity-50" />
-                        <p>No messages yet</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
 
-                {/* Comments Tab */}
-                {activeTab === 'comments' && (
-                  <div className="space-y-4">
-                    {comments.map(comment => (
-                      <div
-                        key={comment.id}
-                        className={`rounded-2xl p-6 border transition-all duration-300 ${comment.is_pinned
-                          ? 'bg-gradient-to-br from-cyan-900/30 to-blue-900/30 border-cyan-400/50 shadow-lg'
-                          : 'bg-slate-800 border-slate-700 hover:border-cyan-400/50'
-                          }`}
-                      >
-                        {/* Pin Indicator */}
-                        {comment.is_pinned && (
-                          <div className="mb-3 flex items-center gap-2 text-cyan-400">
-                            <FaThumbtack className="w-5 h-5" />
-                            <span className="text-sm font-semibold">Pinned Comment</span>
+                {/* ==================== MESSAGES TAB ==================== */}
+                {activeTab === 'messages' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
+                      {messages.map(m => (
+                        <div
+                          key={m._id || m.id}
+                          className={`p-6 rounded-2xl border transition-all space-y-3 ${m.is_read
+                            ? 'bg-slate-800/40 border-slate-800 opacity-80'
+                            : 'bg-slate-800/90 border-cyan-500/40 shadow-lg'
+                            }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-3">
+                                <h4 className="text-lg font-bold text-white">{m.name}</h4>
+                                <span className="text-xs px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full font-mono">
+                                  {m.email}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-1">
+                                {new Date(m.created_at).toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => toggleReadMessage(m._id || m.id)}
+                                className={`p-2.5 rounded-xl border font-semibold flex items-center gap-1.5 text-xs ${m.is_read
+                                  ? 'bg-slate-700 text-slate-400 border-slate-600'
+                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  }`}
+                                title={m.is_read ? 'Mark as Unread' : 'Mark as Read'}
+                              >
+                                {m.is_read ? <FaRegEnvelopeOpen /> : <FaCheck />}
+                                <span>{m.is_read ? 'Read' : 'Unread'}</span>
+                              </button>
+                              <button
+                                onClick={() => deleteMessage(m._id || m.id)}
+                                className="p-2.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-xl border border-red-500/30"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
                           </div>
-                        )}
-
-                        <div className="flex gap-4">
-                          <img
-                            src={comment.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.name)}&background=00ffdc&color=000754&size=100`}
-                            alt={comment.name}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-slate-600"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="text-lg font-bold text-white">{comment.name}</h3>
-                                <p className="text-slate-400 text-sm">
-                                  {new Date(comment.created_at).toLocaleString()}
-                                </p>
-                              </div>
-                              <div className="flex gap-2">
-                                {/* Pin/Unpin Button */}
-                                <button
-                                  onClick={() => togglePinComment(comment.id, comment.is_pinned)}
-                                  className={`p-2 rounded-lg transition-colors duration-300 ${comment.is_pinned
-                                    ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
-                                    : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                                    }`}
-                                  title={comment.is_pinned ? 'Unpin comment' : 'Pin comment'}
-                                >
-                                  <FaThumbtack className="w-5 h-5" />
-                                </button>
-                                {/* Delete Button */}
-                                <button
-                                  onClick={() => deleteComment(comment.id)}
-                                  className="p-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors duration-300"
-                                  title="Delete"
-                                >
-                                  <FaTrash className="text-white" />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-white mt-3">{comment.message}</p>
-                            <div className="flex items-center gap-2 mt-3 text-slate-400">
-                              <FaHeart className="text-red-400" />
-                              <span className="text-sm">{comment.likes || 0} likes</span>
-                            </div>
+                          <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                            <p className="text-xs font-semibold text-cyan-400 mb-1">Subject: {m.subject}</p>
+                            <p className="text-slate-200 text-sm leading-relaxed">{m.message}</p>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                    {comments.length === 0 && (
-                      <div className="text-center py-12 text-slate-400">
-                        <FaComments className="text-4xl mx-auto mb-4 opacity-50" />
-                        <p>No comments yet</p>
+                      ))}
+                      {messages.length === 0 && (
+                        <div className="text-center text-slate-400 py-16">
+                          No contact messages received yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ==================== GALLERY TAB ==================== */}
+                {activeTab === 'gallery' && (
+                  <div className="space-y-6">
+                    {!isCreating && !editingItem && (
+                      <button
+                        onClick={() => {
+                          setIsCreating(true);
+                          resetGalleryForm();
+                        }}
+                        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
+                      >
+                        <FaPlus />
+                        <span>Add Gallery Item</span>
+                      </button>
+                    )}
+
+                    {(isCreating || editingItem?.type === 'gallery') && (
+                      <div className="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl space-y-6">
+                        <h3 className="text-2xl font-bold text-white mb-4">
+                          {isCreating ? 'Add Gallery Item' : 'Edit Gallery Item'}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Title *</label>
+                            <input
+                              type="text"
+                              value={galleryForm.title}
+                              onChange={(e) => setGalleryForm({ ...galleryForm, title: e.target.value })}
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Media URL</label>
+                            <input
+                              type="text"
+                              value={galleryForm.media_url}
+                              onChange={(e) => setGalleryForm({ ...galleryForm, media_url: e.target.value })}
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-4 mt-6">
+                          <button
+                            onClick={() => {
+                              setIsCreating(false);
+                              setEditingItem(null);
+                            }}
+                            className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 font-semibold"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={saveGallery}
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white rounded-xl hover:from-cyan-500 hover:to-emerald-500 font-semibold flex items-center gap-2"
+                          >
+                            <FaSave /> Save Item
+                          </button>
+                        </div>
                       </div>
                     )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {gallery.map(g => (
+                        <div key={g._id || g.id} className="bg-slate-800/80 rounded-2xl overflow-hidden border border-slate-700 p-4 space-y-3">
+                          <h4 className="text-lg font-bold text-white">{g.title}</h4>
+                          <p className="text-slate-400 text-xs">{g.description}</p>
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              onClick={() => startEdit(g, 'gallery')}
+                              className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                            >
+                              <FaEdit /> Edit
+                            </button>
+                            <button
+                              onClick={() => deleteGallery(g._id || g.id)}
+                              className="py-2 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl text-sm font-semibold"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </>

@@ -259,6 +259,11 @@ export const StaggeredMenu = ({
 
     const closeMenu = useCallback(() => {
         if (openRef.current) {
+            // Return focus to the toggle button BEFORE the panel becomes inert/hidden
+            // so assistive technology users always have a valid focus target.
+            if (toggleBtnRef.current) {
+                toggleBtnRef.current.focus();
+            }
             if (onMenuClose) {
                 onMenuClose();
             } else {
@@ -378,7 +383,9 @@ export const StaggeredMenu = ({
                     className={`staggered-menu-panel absolute top-0 right-0 h-full flex flex-col p-[2em_2em_2em_2em] overflow-y-auto z-10 backdrop-blur-[16px] pointer-events-auto transition-colors duration-500
                         ${theme === 'dark' ? 'bg-[#11142F]/80 text-white' : 'bg-white/80 text-slate-800'}`}
                     style={{ WebkitBackdropFilter: 'blur(16px)' }}
-                    aria-hidden={!open}
+                    // Use `inert` instead of `aria-hidden` – inert also prevents focus
+                    // from landing on hidden elements, avoiding the WAI-ARIA violation.
+                    inert={!open || undefined}
                 >
                     <div className="flex justify-end mb-4">
                         <button onClick={closeMenu} className={`text-3xl transition-colors ${theme === 'dark' ? 'text-white hover:text-cyan-400' : 'text-slate-800 hover:text-cyan-500'}`}>

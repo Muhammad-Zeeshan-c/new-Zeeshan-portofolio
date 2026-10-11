@@ -106,3 +106,8 @@
     animation: reveal 2s linear forwards;
   }
 }
+
+/* Hide Spline Watermark */
+a[href*="spline.design"], .spline-watermark, #logo {
+  display: none !important;
+}

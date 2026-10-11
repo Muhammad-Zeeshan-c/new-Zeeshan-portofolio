@@ -1,26 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion } from "framer-motion";
 import { FaGithub, FaInstagram, FaLinkedin, FaDownload, FaBriefcase, FaCode, FaCertificate, FaGlobe, FaArrowRight, FaCube } from 'react-icons/fa';
-import Spline from '@splinetool/react-spline';
 import { AnimatedGradientTextDemo } from '../components/AnimatedGradientTextDemo';
 import GradientText from '../components/GradientText';
 import TextGenerateEffect from "../components/text-generate-effect";
 import Skills from '../components/Skills';
-import Lanyard from '../components/Lanyard/Lanyard';
 import { VelocityScroll } from '../components/VelocityScroll';
 import { ButtonMovingBorder } from '../components/MovingBorderButton';
-import ProjectSection from '../components/ProjectSection';
-import Contact from '../components/Contact';
+import apiService from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
+
+// Lazy loaded heavy 3D and section components for peak loading performance
+const Lanyard = lazy(() => import('../components/Lanyard/Lanyard'));
+const Spline = lazy(() => import('@splinetool/react-spline'));
+const ProjectSection = lazy(() => import('../components/ProjectSection'));
+const Contact = lazy(() => import('../components/Contact'));
 
 const Home = () => {
     const { theme } = useTheme();
+    const [projectCount, setProjectCount] = useState(0);
+    const [certificateCount, setCertificateCount] = useState(0);
+    const [cvUrl, setCvUrl] = useState('');
+
+    useEffect(() => {
+        async function fetchCountsAndCV() {
+            try {
+                const pCount = await apiService.getProjectCount();
+                setProjectCount(pCount);
+
+                const cCount = await apiService.getCertificateCount();
+                setCertificateCount(cCount);
+
+                const cv = await apiService.getActiveCV();
+                if (cv && cv.pdf_url) {
+                    setCvUrl(cv.pdf_url);
+                }
+            } catch (err) {
+                console.error('Error fetching stats/cv:', err);
+            }
+        }
+        fetchCountsAndCV();
+    }, []);
 
     const [is3dEnabled, setIs3dEnabled] = useState(() => {
         if (typeof window !== 'undefined') {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            const isSmallScreen = window.innerWidth < 1024;
-            return !isMobile && !isSmallScreen;
+            // Only disable on actual phones or very small screens (< 768px)
+            const isMobilePhone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && window.innerWidth < 768;
+            // Check WebGL support
+            const canvas = document.createElement('canvas');
+            const hasWebGL = !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+            return !isMobilePhone && hasWebGL;
         }
         return true;
     });
@@ -30,9 +59,9 @@ const Home = () => {
     };
 
     const stats = [
-        { icon: <FaCode />, value: "13", title: "TOTAL PROJECTS", description: "Innovative web solutions crafted" },
-        { icon: <FaCertificate />, value: "13", title: "CERTIFICATES", description: "Professional skills validated" },
-        { icon: <FaGlobe />, value: "3", title: "YEARS OF EXPERIENCE", description: "Continuous learning journey" },
+        { icon: <FaCode />, value: projectCount.toString(), title: "TOTAL PROJECTS", description: "Innovative web solutions crafted" },
+        { icon: <FaCertificate />, value: certificateCount.toString(), title: "CERTIFICATIONS", description: "Professional skills validated" },
+        { icon: <FaGlobe />, value: "1+", title: "YEARS OF EXPERIENCE", description: "Continuous learning journey" },
     ];
 
     return (
@@ -85,13 +114,10 @@ const Home = () => {
                         <Skills />
                     </motion.div>
                     <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.0, ease: "easeOut" }} className="flex flex-row gap-4 mt-8">
-                        <a href="https://github.com/ZainAhmadF28" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
+                        <a href="https://github.com/Muhammad-Zeeshan-c/" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
                             <FaGithub className="h-6 w-6 dark:text-slate-400 text-slate-600 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300" />
                         </a>
-                        <a href="https://instagram.com/zain.ahmadf" target="_blank" rel="noopener noreferrer" aria-label="Instagram Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
-                            <FaInstagram className="h-6 w-6 dark:text-slate-400 text-slate-600 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300" />
-                        </a>
-                        <a href="https://linkedin.com/in/zainahmadfahrezi" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
+                        <a href="https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
                             <FaLinkedin className="h-6 w-6 dark:text-slate-400 text-slate-600 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300" />
                         </a>
                     </motion.div>
@@ -100,7 +126,9 @@ const Home = () => {
                 {/* 3. Render Lanyard secara kondisional */}
                 <div className="hidden lg:flex flex-1 justify-center h-[600px] w-full order-first lg:order-none">
                     {is3dEnabled && (
-                        <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} fov={18} transparent={true} />
+                        <Suspense fallback={<div className="h-[600px] w-full flex items-center justify-center text-slate-500 font-cascadia">Loading 3D Card...</div>}>
+                            <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} fov={18} transparent={true} />
+                        </Suspense>
                     )}
                 </div>
             </section>
@@ -112,16 +140,16 @@ const Home = () => {
             >
                 <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, ease: "easeOut" }} className="text-center">
                     <div className="relative flex w-full flex-col items-center justify-center overflow-hidden mb-20">
-                        <VelocityScroll defaultVelocity={3} numRows={1} className="max-w-full">
+                        <VelocityScroll defaultVelocity={1.5} numRows={1} className="max-w-full">
                             <span className="font-moderniz font-bold" style={{ fontSize: "2.5rem", lineHeight: "1.1", color: theme === 'dark' ? "#00ffdc" : "#0891b2", textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none", background: "none", WebkitBackgroundClip: "unset", WebkitTextFillColor: "unset", filter: theme === 'dark' ? 'none' : 'none', opacity: theme === 'dark' ? 1 : 0.3 }}>
-                                ABOUT <span style={{ color: theme === 'dark' ? "#fff" : "#0891b2" }}>ME</span>
+                                MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering <span style={{fontFamily: 'sans-serif'}}>@</span> COMSATS ✦ Exploring AI &amp; Machine Learning
                             </span>
                         </VelocityScroll>
                         <div className={`pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r ${theme === 'dark' ? 'from-[#060010]' : 'from-slate-50'}`}></div>
                         <div className={`pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l ${theme === 'dark' ? 'from-[#060010]' : 'from-slate-50'}`}></div>
-                        <VelocityScroll defaultVelocity={-3} numRows={1} className="max-w-full">
+                        <VelocityScroll defaultVelocity={-1.5} numRows={1} className="max-w-full">
                             <span className="font-moderniz font-bold" style={{ fontSize: "2.5rem", lineHeight: "1.1", color: theme === 'dark' ? "#00ffdc" : "#0891b2", textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none", background: "none", WebkitBackgroundClip: "unset", WebkitTextFillColor: "unset", filter: theme === 'dark' ? 'none' : 'none', opacity: theme === 'dark' ? 1 : 0.3 }}>
-                                ABOUT <span style={{ color: theme === 'dark' ? "#fff" : "#0891b2" }}>ME</span>
+                                MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering <span style={{fontFamily: 'sans-serif'}}>@</span> COMSATS ✦ Exploring AI &amp; Machine Learning
                             </span>
                         </VelocityScroll>
                     </div>
@@ -140,7 +168,9 @@ const Home = () => {
                             className="md:w-1/3 flex justify-center"
                         >
                             <div className="w-full h-[420px] md:h-[530px] flex items-center justify-center">
-                                <Spline scene="https://prod.spline.design/FcZ66SFMX1YbF-0I/scene.splinecode" />
+                                <Suspense fallback={<div className="h-[420px] flex items-center justify-center text-slate-500 font-cascadia">Loading 3D Robot...</div>}>
+                                    <Spline scene="https://prod.spline.design/FcZ66SFMX1YbF-0I/scene.splinecode" />
+                                </Suspense>
                             </div>
                         </motion.div>
                     )}
@@ -150,18 +180,38 @@ const Home = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                        className={`dark:text-white text-slate-800 text-center md:text-left px-4 md:px-8 transition-all duration-700 ${is3dEnabled ? 'md:w-1/2' : 'md:w-2/3'}`}
+                        className={`dark:text-white text-slate-800 text-center px-4 md:px-8 transition-all duration-700 md:w-3/4 lg:w-2/3 max-w-4xl ${is3dEnabled ? 'md:text-left md:w-1/2' : 'md:w-3/4 lg:w-2/3 max-w-4xl'}`}
                     >
                         <p className="text-2xl dark:text-gray-300 text-slate-500 font-moderniz my" style={{ textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none" }}>Hello, I'm</p>
-                        <h3 className="text-4xl font-bold dark:text-white text-slate-900 my-2 font-moderniz" style={{ textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none" }}>Zain Ahmad Fahrezi</h3>
+                        <h3 className="text-4xl font-bold dark:text-white text-slate-900 my-2 font-moderniz" style={{ textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none" }}>Zeeshan Khalid</h3>
                         <p className="dark:text-white/80 text-slate-600 leading-relaxed mt-4 font-cascadia text-justify">
-                            Saya adalah mahasiswa Teknik Informatika di Universitas Indo Global Mandiri Palembang yang memiliki minat besar dalam pengembangan Full Stack dan teknologi web modern. Saya selalu bersemangat untuk belajar hal baru dan menciptakan solusi digital yang inovatif.
+                            I'm a Software Engineering student at COMSATS University Lahore, a MERN Stack Developer, and an aspiring AI Engineer passionate about building modern, scalable, and user-focused applications. With a strong interest in Artificial Intelligence and Machine Learning, I'm exploring ways to integrate intelligent solutions into real-world products.
+                        </p>
+                        <p className="dark:text-white/80 text-slate-600 leading-relaxed mt-4 font-cascadia text-justify">
+                            I enjoy solving problems, exploring new technologies, and turning ideas into meaningful digital experiences. I'm continuously developing my skills in software engineering and AI to build solutions that make a difference.
+                        </p>
+                        <p className="dark:text-cyan-300/90 text-cyan-700 leading-relaxed mt-4 font-cascadia font-semibold text-justify">
+                            Have an idea, a project, or an opportunity to collaborate? Let's connect and make it happen.
                         </p>
                         <div className="my-6 dark:bg-slate-900/50 bg-slate-50 border-l-4 dark:border-[#00ffdc] border-cyan-600 p-4 rounded-r-lg italic dark:text-white/70 text-slate-700 font-cascadia dark:shadow-none shadow-md">
                             "Whoever strives shall succeed."
                         </div>
                         <div className="flex flex-row sm:flex-row gap-4 mt-8 justify-center md:justify-start items-center">
-                            <ButtonMovingBorder as="a" href="/cv.pdf" download duration={3000} borderRadius="0.75rem" className="dark:bg-slate-900/[0.8] bg-white border dark:border-slate-800 border-slate-200 dark:text-white text-slate-800 font-semibold flex items-center justify-center gap-2 transition-all duration-300 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-[0_0_24px_8px_#40ffaa]">
+                            <ButtonMovingBorder 
+                                as="a" 
+                                href={cvUrl || '#'} 
+                                target={cvUrl ? "_blank" : "_self"} 
+                                rel="noopener noreferrer" 
+                                download={cvUrl ? true : undefined} 
+                                onClick={(e) => {
+                                    if (!cvUrl) {
+                                        e.preventDefault();
+                                        alert('CV will be available soon!');
+                                    }
+                                }}
+                                duration={3000} 
+                                borderRadius="0.75rem" 
+                                className="dark:bg-slate-900/[0.8] bg-white border dark:border-slate-800 border-slate-200 dark:text-white text-slate-800 font-semibold flex items-center justify-center gap-2 transition-all duration-300 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-[0_0_24px_8px_#40ffaa]">
                                 <FaDownload /> Download CV
                             </ButtonMovingBorder>
                             <ButtonMovingBorder as="a" href="#projects" duration={3000} borderRadius="0.75rem" className="dark:bg-slate-900/[0.8] bg-white border dark:border-slate-800 border-slate-200 dark:text-white text-slate-800 font-semibold flex items-center justify-center gap-2 transition-all duration-300 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-[0_0_24px_8px_#40ffaa]">
@@ -193,15 +243,19 @@ const Home = () => {
             </section>
 
             <section id="projects" className="md:py-18">
-                <ProjectSection />
+                <Suspense fallback={<div className="py-20 text-center text-slate-500 font-cascadia">Loading Projects...</div>}>
+                    <ProjectSection />
+                </Suspense>
             </section>
 
             <section id="contact" className="py-20 pb-16">
-                <Contact />
+                <Suspense fallback={<div className="py-20 text-center text-slate-500 font-cascadia">Loading Contact...</div>}>
+                    <Contact />
+                </Suspense>
             </section>
 
             <footer className="py-12 pb-16 text-center text-gray-400 dark:bg-gradient-to-t dark:from-slate-900/50 dark:to-transparent bg-gradient-to-t from-slate-100/50 to-transparent">
-                <div className="text-sm">© {new Date().getFullYear()} Zain Ahmad Fahrezi. All rights reserved.</div>
+                <div className="text-sm">© {new Date().getFullYear()} Zeeshan Khalid. All rights reserved.</div>
                 <div className="text-xs mt-2">Built with <span className="text-red-500">♥</span> using React, Tailwind CSS, and Framer Motion.</div>
             </footer>
         </motion.div>

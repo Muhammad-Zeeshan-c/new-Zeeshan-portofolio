@@ -13,150 +13,17 @@ import { PiCodeBold } from "react-icons/pi";
 import { LuBadge } from "react-icons/lu";
 import { LiaLayerGroupSolid } from "react-icons/lia";
 import { useNavbar } from '../contexts/NavbarContext';
-import { supabase } from '../lib/supabase';
+import apiService from '../services/api';
 
 // ===================================
-// DATA PROYEK (FALLBACK - will be replaced by DB data)
+// DATA PROYEK (Dynamic from DB)
 // ===================================
-const dummyProjects = [
-  {
-    title: "Portfolio v2",
-    description: "Website portofolio pribadi yang dibangun dengan React, Next.js, dan Tailwind CSS, di-deploy di Vercel.",
-    tech: ["Next.js", "React", "TailwindCSS", "Framer Motion"],
-    link: "https://github.com/username/portfolio",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
-    category: "Web/Apps",
-  },
-  {
-    title: "E-Commerce API",
-    description: "RESTful API untuk platform e-commerce dengan fitur otentikasi, manajemen produk, dan transaksi.",
-    tech: ["Node.js", "Express", "MongoDB", "JWT"],
-    link: "https://github.com/username/ecommerce-api",
-    image: "https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=2072&auto=format&fit=crop",
-    category: "Web/Apps",
-  },
-  {
-    title: "UI Design System",
-    description: "Merancang komponen UI yang reusable dan konsisten untuk aplikasi web menggunakan Figma.",
-    tech: ["Figma", "Storybook"],
-    link: "#",
-    image: "https://images.unsplash.com/photo-1600132806378-62402124d9e0?q=80&w=2070&auto=format&fit=crop",
-    category: "Web/Apps",
-  },
-  {
-    title: "3D Product Visualization",
-    description: "Desain 3D interaktif untuk showcase produk menggunakan Spline dan Blender.",
-    tech: ["Spline", "Blender"],
-    link: "#",
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop",
-    category: "3D Design",
-  },
-  {
-    title: "Animated 3D Landing",
-    description: "Landing page dengan elemen 3D animasi untuk branding modern.",
-    tech: ["Spline", "Three.js"],
-    link: "#",
-    image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?q=80&w=2070&auto=format&fit=crop",
-    category: "3D Design",
-  },
-];
+const dummyProjects = [];
 
 // ===================================
-// DATA SERTIFIKAT ZAIN AHMAD FAHREZI
+// DATA SERTIFIKAT (Dynamic from DB)
 // ===================================
-const userCertificates = [
-  {
-    title: "Belajar Membuat Aplikasi Web dengan React",
-    issuer: "Dicoding Indonesia",
-    date: "Des 2024",
-    link: "/certificates/Belajar Membuat Aplikasi Web dengan React.pdf",
-    image: "/certificate-images/Belajar Membuat Aplikasi Web dengan React.jpg",
-  },
-  {
-    title: "Belajar Dasar Pemrograman JavaScript",
-    issuer: "Dicoding Indonesia",
-    date: "Des 2024",
-    link: "/certificates/Belajar Dasar Pemrograman JavaScript.pdf",
-    image: "/certificate-images/Belajar Dasar Pemrograman JavaScript.jpg",
-  },
-  {
-    title: "Junior Web Developer (BNSP)",
-    issuer: "Badan Nasional Sertifikasi Profesi (BNSP)",
-    date: "Sep 2024",
-    link: "/certificates/SERTIFIKAT BNSP JUNIOR WEB DEVELOPER ZAIN AHMAD FAHREZI.jpeg",
-    image: "/certificate-images/SERTIFIKAT BNSP JUNIOR WEB DEVELOPER ZAIN AHMAD FAHREZI.jpg",
-  },
-  {
-    title: "Belajar Membuat Front-End Web untuk Pemula",
-    issuer: "Dicoding Indonesia",
-    date: "Des 2024",
-    link: "/certificates/Belajar Membuat Front-End Web untuk Pemula.pdf",
-    image: "/certificate-images/Belajar Membuat Front-End Web untuk Pemula.jpg",
-  },
-  {
-    title: "Operator Komputer Madya (BNSP)",
-    issuer: "Badan Nasional Sertifikasi Profesi (BNSP)",
-    date: "Des 2024",
-    link: "/certificates/Operator Komputer Madya BNSP.jpeg",
-    image: "/certificate-images/Operator Komputer Madya BNSP.jpg",
-  },
-  {
-    title: "Belajar Dasar Data Science",
-    issuer: "Dicoding Indonesia",
-    date: "Okt 2024",
-    link: "/certificates/Belajar Dasar Data Science.pdf",
-    image: "/certificate-images/Belajar Dasar Data Science.jpg",
-  },
-  {
-    title: "Belajar Dasar Structured Query Language (SQL)",
-    issuer: "Dicoding Indonesia",
-    date: "Okt 2024",
-    link: "/certificates/Belajar Dasar Structured Query Language (SQL).pdf",
-    image: "/certificate-images/Belajar Dasar Structured Query Language (SQL).jpg",
-  },
-  {
-    title: "Belajar Dasar AI",
-    issuer: "Dicoding Indonesia",
-    date: "Sep 2024",
-    link: "/certificates/Belajar Dasar AI.pdf",
-    image: "/certificate-images/Belajar Dasar AI.jpg",
-  },
-  {
-    title: "Belajar Dasar Manajemen Proyek",
-    issuer: "Dicoding Indonesia",
-    date: "Sep 2024",
-    link: "/certificates/Belajar Dasar Manajemen Proyek.pdf",
-    image: "/certificate-images/Belajar Dasar Manajemen Proyek.jpg",
-  },
-  {
-    title: "Operator Komputer Madya (VSGA)",
-    issuer: "Digital Talent Scholarship",
-    date: "Agu 2024",
-    link: "/certificates/Operator Komputer Madya VSGA.pdf",
-    image: "/certificate-images/Operator Komputer Madya VSGA.jpg",
-  },
-  {
-    title: "Junior Web Developer (VSGA)",
-    issuer: "Kominfo",
-    date: "Jul 2024",
-    link: "/certificates/Junior Web Developer VSGA.pdf",
-    image: "/certificate-images/Junior Web Developer VSGA.jpg",
-  },
-  {
-    title: "Java Fundamentals",
-    issuer: "Oracle",
-    date: "Jun 2024",
-    link: "/certificates/JAVA FUNDAMENTALS.pdf",
-    image: "/certificate-images/JAVA FUNDAMENTALS.jpg",
-  },
-  {
-    title: "Belajar Dasar Pemrograman Web",
-    issuer: "Dicoding Indonesia",
-    date: "Nov 2023",
-    link: "/certificates/Belajar Dasar Pemrograman Web.pdf",
-    image: "/certificate-images/Belajar Dasar Pemrograman Web.jpg",
-  },
-];
+const userCertificates = [];
 
 const techStack = {
   frontend: [
@@ -473,7 +340,6 @@ const CertificatePreviewModal = ({ certificate, onClose }) => {
 // ===================================
 function ProjectSection() {
   const [activeTab, setActiveTab] = useState('Projects');
-  const [projectCategory, setProjectCategory] = useState('Web/Apps');
   const [previewCertificate, setPreviewCertificate] = useState(null);
   const [previewProject, setPreviewProject] = useState(null); // ✨ NEW STATE
   const { hideNavbar, showNavbar } = useNavbar();
@@ -493,23 +359,10 @@ function ProjectSection() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        console.log('🔍 Fetching projects from Supabase...');
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('❌ Error fetching projects:', error);
-          throw error;
-        }
+        const data = await apiService.getProjects();
 
         if (data && data.length > 0) {
-          console.log('✅ Projects loaded from database:', data.length, 'projects');
-          console.log('📊 Projects data:', data);
           setProjectsFromDB(data);
-        } else {
-          console.log('⚠️ No projects found in database, using fallback data');
         }
       } catch (err) {
         console.error('❌ Error fetching projects:', err);
@@ -524,23 +377,10 @@ function ProjectSection() {
   useEffect(() => {
     async function fetchCertificates() {
       try {
-        console.log('🔍 Fetching certificates from Supabase...');
-        const { data, error } = await supabase
-          .from('certificates')
-          .select('*')
-          .order('issue_date', { ascending: false });
-
-        if (error) {
-          console.error('❌ Error fetching certificates:', error);
-          throw error;
-        }
+        const data = await apiService.getCertificates();
 
         if (data && data.length > 0) {
-          console.log('✅ Certificates loaded from database:', data.length, 'certificates');
-          console.log('📜 Certificates data:', data);
           setCertificatesFromDB(data);
-        } else {
-          console.log('⚠️ No certificates found in database, using fallback data');
         }
       } catch (err) {
         console.error('❌ Error fetching certificates:', err);
@@ -575,9 +415,6 @@ function ProjectSection() {
   // Use database projects if available, fallback to dummy data
   const activeProjects = projectsFromDB.length > 0 ? projectsFromDB : dummyProjects;
 
-  console.log('🎯 Active projects source:', projectsFromDB.length > 0 ? 'DATABASE' : 'FALLBACK');
-  console.log('📦 Total projects:', activeProjects.length);
-
   // Transform database projects to match UI format
   const transformedProjects = activeProjects.map(p => {
     // If has UUID id, it's from database - transform it
@@ -598,17 +435,8 @@ function ProjectSection() {
     return p;
   });
 
-  console.log('🔄 Transformed projects:', transformedProjects.length);
-
-  // Filter projects by category (only applies to static dummy data)
-  const filteredProjects = transformedProjects.filter((p) => {
-    // If from database (has category 'Database'), show all
-    if (p.category === 'Database') return true;
-    // For dummy data, filter by selected category
-    return p.category === projectCategory;
-  });
-
-  console.log('✨ Filtered projects to display:', filteredProjects.length);
+  // Filter projects (show all loaded/transformed projects)
+  const filteredProjects = transformedProjects;
 
   // Use database certificates if available, fallback to static data
   const activeCertificates = certificatesFromDB.length > 0 ? certificatesFromDB : userCertificates;
@@ -695,14 +523,6 @@ function ProjectSection() {
             >
               {activeTab === 'Projects' && (
                 <>
-                  {/* Only show category buttons for dummy data */}
-                  {projectsFromDB.length === 0 && (
-                    <div className="flex justify-center gap-4 mb-8">
-                      <button className={`px-5 py-2 rounded-full font-semibold transition-all duration-200 border ${projectCategory === 'Web/Apps' ? 'bg-cyan-700/80 text-white border-cyan-400 shadow-cyan-500/10 shadow-lg' : 'bg-slate-900/60 text-cyan-200 border-slate-700 hover:bg-cyan-800/40 hover:text-white'}`} onClick={() => setProjectCategory('Web/Apps')}>Web/Apps</button>
-                      <button className={`px-5 py-2 rounded-full font-semibold transition-all duration-200 border ${projectCategory === '3D Design' ? 'bg-cyan-700/80 text-white border-cyan-400 shadow-cyan-500/10 shadow-lg' : 'bg-slate-900/60 text-cyan-200 border-slate-700 hover:bg-cyan-800/40 hover:text-white'}`} onClick={() => setProjectCategory('3D Design')}>3D Design</button>
-                    </div>
-                  )}
-
                   {loadingProjects ? (
                     <div className="flex justify-center py-12">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
@@ -739,23 +559,31 @@ function ProjectSection() {
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        <AnimatePresence>
-                          {activeCertificates.slice(0, visibleCertificatesCount).map((cert, i) => {
-                            // Transform DB data to match CertificateCard props
-                            const certData = cert.id ? {
-                              // From database (has UUID id)
-                              title: cert.title,
-                              issuer: cert.issuer,
-                              date: cert.issue_date ? new Date(cert.issue_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '',
-                              link: cert.credential_url || '#',
-                              image: cert.image_url || ''
-                            } : cert; // From static data
+                      {activeCertificates.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                          <AnimatePresence>
+                            {activeCertificates.slice(0, visibleCertificatesCount).map((cert, i) => {
+                              // Transform DB data to match CertificateCard props
+                              const certData = cert.id ? {
+                                title: cert.title,
+                                issuer: cert.issuer,
+                                date: cert.issue_date ? new Date(cert.issue_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '',
+                                link: cert.credential_url || '#',
+                                image: cert.image_url || ''
+                              } : cert;
 
-                            return <CertificateCard key={cert.id || i} cert={certData} onClick={setPreviewCertificate} />;
-                          })}
-                        </AnimatePresence>
-                      </div>
+                              return <CertificateCard key={cert.id || i} cert={certData} onClick={setPreviewCertificate} />;
+                            })}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        <div className="text-center text-slate-400 py-12">
+                          No certificates available yet.
+                          <div className="mt-4 text-sm text-cyan-400">
+                            Add certifications via Admin Dashboard to display them here!
+                          </div>
+                        </div>
+                      )}
                       {activeCertificates.length > INITIAL_CERTIFICATES_TO_SHOW && (
                         <div className="flex justify-center mt-12">
                           {visibleCertificatesCount < activeCertificates.length ? (
