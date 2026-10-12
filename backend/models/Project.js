@@ -33,6 +33,10 @@ const projectSchema = new mongoose.Schema({
   featured: {
     type: Boolean,
     default: false
+  },
+  priority: {
+    type: Number,
+    default: 1
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }

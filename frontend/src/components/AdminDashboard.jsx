@@ -41,7 +41,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
     demo_url: '',
     github_url: '',
     tags: '',
-    featured: false
+    featured: false,
+    priority: 1
   });
 
   const [certificateForm, setCertificateForm] = useState({
@@ -255,21 +256,29 @@ const AdminDashboard = ({ isOpen, onClose }) => {
   // PROJECT CRUD
   const saveProject = async () => {
     if (!projectForm.title || !projectForm.description || !projectForm.image_url) {
-      alert('Title, Description, and Image are required!');
+      alert('Title, Description, and Image URL are required!');
       return;
     }
 
     try {
       if (editingItem) {
-        const res = await apiService.updateProject(editingItem._id || editingItem.id, projectForm);
+        const id = editingItem._id || editingItem.id;
+        if (!id) {
+          throw new Error('Project ID not found for editing');
+        }
+        const res = await apiService.updateProject(id, projectForm);
         if (res.success) {
           alert('Project updated successfully! 🚀');
-        } else throw new Error(res.message);
+        } else {
+          throw new Error(res.message || res.error || 'Failed to update project');
+        }
       } else {
         const res = await apiService.createProject(projectForm);
         if (res.success) {
           alert('Project created successfully! 🎉');
-        } else throw new Error(res.message);
+        } else {
+          throw new Error(res.message || res.error || 'Failed to create project');
+        }
       }
       setIsCreating(false);
       setEditingItem(null);
@@ -277,6 +286,20 @@ const AdminDashboard = ({ isOpen, onClose }) => {
       fetchProjects();
     } catch (error) {
       alert('Error saving project: ' + error.message);
+    }
+  };
+
+  const toggleProjectFeatured = async (p) => {
+    try {
+      const id = p._id || p.id;
+      const res = await apiService.updateProject(id, { featured: !p.featured });
+      if (res.success) {
+        fetchProjects();
+      } else {
+        alert('Failed to toggle featured: ' + (res.message || res.error));
+      }
+    } catch (err) {
+      alert('Error toggling featured: ' + err.message);
     }
   };
 
@@ -396,7 +419,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
       demo_url: '',
       github_url: '',
       tags: '',
-      featured: false
+      featured: false,
+      priority: 1
     });
   };
 
@@ -435,7 +459,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
         demo_url: item.demo_url || '',
         github_url: item.github_url || '',
         tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags || '',
-        featured: item.featured || false
+        featured: Boolean(item.featured),
+        priority: item.priority !== undefined && item.priority !== null ? Number(item.priority) : 1
       });
     } else if (type === 'certificate') {
       setCertificateForm({
@@ -564,6 +589,17 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                             />
                           </div>
                           <div>
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Priority Number (1 = First/Top) *</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={projectForm.priority}
+                              onChange={(e) => setProjectForm({ ...projectForm, priority: parseInt(e.target.value) || 1 })}
+                              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-cyan-400"
+                              placeholder="1"
+                            />
+                          </div>
+                          <div>
                             <label className="block text-slate-400 mb-2 text-sm font-semibold">Tags (comma separated)</label>
                             <input
                               type="text"
@@ -604,8 +640,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Upload Image to Cloudinary *</label>
-                            <div className="flex gap-4 items-center">
+                            <label className="block text-slate-400 mb-2 text-sm font-semibold">Project Image (Upload File or Enter URL) *</label>
+                            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -613,12 +649,22 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                                 disabled={uploadingFile}
                                 className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500"
                               />
-                              {uploadingFile && <div className="text-cyan-400 text-sm font-semibold animate-pulse">Uploading...</div>}
+                              {uploadingFile && <div className="text-cyan-400 text-sm font-semibold animate-pulse flex-shrink-0">Uploading...</div>}
+                            </div>
+                            <div className="mt-3">
+                              <label className="block text-slate-400 mb-1 text-xs">Direct Image URL</label>
+                              <input
+                                type="text"
+                                value={projectForm.image_url}
+                                onChange={(e) => setProjectForm({ ...projectForm, image_url: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm focus:border-cyan-400"
+                                placeholder="https://..."
+                              />
                             </div>
                             {projectForm.image_url && (
                               <div className="mt-3 flex items-center gap-4">
                                 <img src={projectForm.image_url} alt="Preview" className="h-20 w-32 object-cover rounded-xl border border-slate-700" />
-                                <span className="text-xs text-emerald-400 font-mono break-all">✓ Cloudinary URL: {projectForm.image_url}</span>
+                                <span className="text-xs text-emerald-400 font-mono break-all">✓ Preview: {projectForm.image_url}</span>
                               </div>
                             )}
                           </div>
@@ -661,11 +707,20 @@ const AdminDashboard = ({ isOpen, onClose }) => {
                         <div key={p._id || p.id} className="bg-slate-800/80 rounded-2xl overflow-hidden border border-slate-700/80 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
                           <div className="relative h-44">
                             <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
-                            {p.featured && (
-                              <div className="absolute top-3 right-3 bg-yellow-500 text-slate-900 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow">
-                                <FaStar /> Featured
-                              </div>
-                            )}
+                            <div className="absolute top-3 left-3 bg-cyan-600/90 backdrop-blur-sm text-white font-bold px-2.5 py-1 rounded-full text-xs shadow flex items-center gap-1">
+                              Priority #{p.priority ?? 1}
+                            </div>
+                            <button
+                              onClick={() => toggleProjectFeatured(p)}
+                              title="Click to toggle featured"
+                              className={`absolute top-3 right-3 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow transition-transform hover:scale-105 ${
+                                p.featured
+                                  ? 'bg-yellow-500 text-slate-900'
+                                  : 'bg-black/60 text-white/60 hover:text-white border border-white/20'
+                              }`}
+                            >
+                              <FaStar className={p.featured ? 'text-slate-900' : 'text-white/40'} /> {p.featured ? 'Featured' : 'Regular'}
+                            </button>
                           </div>
                           <div className="p-5 space-y-3 flex-1">
                             <h4 className="text-xl font-bold text-white">{p.title}</h4>

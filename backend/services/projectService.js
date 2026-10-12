@@ -6,7 +6,7 @@ import { deleteFileFromCloudinary } from './cloudinaryService.js';
  * Handles business logic and DB interactions for portfolio projects
  */
 export const getAllProjects = async () => {
-  return await Project.find().sort({ created_at: -1 });
+  return await Project.find().sort({ priority: 1, created_at: -1 });
 };
 
 export const countProjects = async () => {
@@ -14,7 +14,7 @@ export const countProjects = async () => {
 };
 
 export const createNewProject = async (projectData) => {
-  const { title, description, tags, demo_url, github_url, image_url, image_public_id, featured } = projectData;
+  const { title, description, tags, demo_url, github_url, image_url, image_public_id, featured, priority } = projectData;
 
   const formattedTags = Array.isArray(tags)
     ? tags
@@ -30,7 +30,8 @@ export const createNewProject = async (projectData) => {
     github_url,
     image_url,
     image_public_id: image_public_id || '',
-    featured: featured || false
+    featured: featured || false,
+    priority: priority !== undefined && priority !== null && priority !== '' ? Number(priority) : 1
   });
 };
 
@@ -51,6 +52,14 @@ export const updateExistingProject = async (id, updateData) => {
 
   if (updateData.tags && typeof updateData.tags === 'string') {
     updateData.tags = updateData.tags.split(',').map(t => t.trim()).filter(Boolean);
+  }
+
+  if (updateData.priority !== undefined && updateData.priority !== null && updateData.priority !== '') {
+    updateData.priority = Number(updateData.priority);
+  }
+
+  if (updateData.featured !== undefined) {
+    updateData.featured = Boolean(updateData.featured);
   }
 
   return await Project.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });

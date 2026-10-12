@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from "react";
+import React, { useMemo, memo, useRef, useEffect, useCallback } from "react";
 import Particles, { ParticlesProvider } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 
@@ -8,6 +8,47 @@ const initParticles = async (engine) => {
 };
 
 const ParticlesBackground = memo(() => {
+  const containerRef = useRef(null);
+
+  const particlesLoaded = useCallback(async (container) => {
+    containerRef.current = container;
+  }, []);
+
+  // Listen for clicks strictly within the home section
+  useEffect(() => {
+    const homeSection = document.getElementById("home");
+    if (!homeSection) return;
+
+    const handleHomeClick = (e) => {
+      // 1. If clicked on interactive elements (buttons, links, inputs, 3D card canvas), do NOT push particles
+      if (
+        e.target.closest(
+          'button, a, input, textarea, select, [role="button"], .interactive-element, .lanyard-wrapper'
+        )
+      ) {
+        return;
+      }
+
+      // 2. Click was on the home section background or whitespace: push 3 particles!
+      const container = containerRef.current;
+      if (container && container.particles) {
+        const canvas = container.canvas?.domElement;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          const pxRatio = container.retina?.pixelRatio || 1;
+          const x = (e.clientX - rect.left) * pxRatio;
+          const y = (e.clientY - rect.top) * pxRatio;
+          container.particles.push(3, { x, y });
+        }
+      }
+    };
+
+    homeSection.addEventListener("click", handleHomeClick);
+    return () => {
+      homeSection.removeEventListener("click", handleHomeClick);
+    };
+  }, []);
+
   const options = useMemo(
     () => ({
       fullScreen: { enable: false, zIndex: 0 },
@@ -22,14 +63,12 @@ const ParticlesBackground = memo(() => {
             mode: "grab",
           },
           onClick: {
-            enable: true,
-            mode: "push",
+            enable: false, // Disabled here so tsparticles does NOT attach global window listeners
           },
           resize: true,
         },
         modes: {
           grab: {
-            // Distance (in px) within which particles connect to mouse pointer
             distance: 200,
             links: {
               opacity: 0.6,
@@ -37,7 +76,6 @@ const ParticlesBackground = memo(() => {
             },
           },
           push: {
-            // Number of new particles spawned when clicked
             quantity: 3,
           },
         },
@@ -48,7 +86,6 @@ const ParticlesBackground = memo(() => {
         },
         links: {
           color: "#00B4D8",
-          // Maximum distance between two particles to form a connecting line
           distance: 140,
           enable: true,
           opacity: 0.25,
@@ -61,17 +98,14 @@ const ParticlesBackground = memo(() => {
             default: "bounce",
           },
           random: false,
-          // Movement speed of the particles
           speed: 1.0,
           straight: false,
         },
         number: {
           density: {
             enable: true,
-            // Area in px for particle density calculation
             area: 900,
           },
-          // Base quantity of particles generated
           value: 150,
         },
         opacity: {
@@ -87,7 +121,6 @@ const ParticlesBackground = memo(() => {
           type: "circle",
         },
         size: {
-          // Size range (min and max radius in px)
           value: { min: 1.2, max: 3 },
         },
       },
@@ -102,6 +135,7 @@ const ParticlesBackground = memo(() => {
         <Particles
           id="tsparticles"
           options={options}
+          particlesLoaded={particlesLoaded}
           className="absolute inset-0 w-full h-full"
           style={{
             position: "absolute",

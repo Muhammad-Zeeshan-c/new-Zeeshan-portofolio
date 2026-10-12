@@ -141,7 +141,7 @@ const Home = () => {
                     </div>
 
                     {/* 3D Lanyard Card */}
-                    <div className="hidden lg:flex flex-1 justify-center h-[600px] w-full order-first lg:order-none">
+                    <div className="hidden lg:flex flex-1 justify-center h-[600px] w-full order-first lg:order-none lanyard-wrapper">
                         {is3dEnabled && (
                             <Suspense fallback={<div className="h-[600px] w-full flex items-center justify-center text-white/40">Loading 3D Card...</div>}>
                                 <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} fov={18} transparent={true} />

@@ -408,29 +408,37 @@ function ProjectSection() {
     { id: 'Tech Stack', label: 'Tech Stack', icon: <LiaLayerGroupSolid className="text-2xl" /> },
   ];
 
-  const transformedProjects = projectsFromDB.map(p => {
-    let techArray = [];
-    if (Array.isArray(p.tech_stack)) {
-      techArray = p.tech_stack;
-    } else if (typeof p.tech_stack === 'string') {
-      try {
-        techArray = JSON.parse(p.tech_stack);
-      } catch {
-        techArray = p.tech_stack.split(',').map(s => s.trim());
+  const transformedProjects = projectsFromDB
+    .map(p => {
+      let techArray = [];
+      const rawTech = p.tags || p.tech_stack;
+      if (Array.isArray(rawTech)) {
+        techArray = rawTech;
+      } else if (typeof rawTech === 'string') {
+        try {
+          techArray = JSON.parse(rawTech);
+        } catch {
+          techArray = rawTech.split(',').map(s => s.trim()).filter(Boolean);
+        }
       }
-    }
-    return {
-      id: p.id,
-      title: p.title || 'Untitled Project',
-      description: p.description || '',
-      image: p.image_url || '',
-      link: p.live_url || p.demo_url || '',
-      github_url: p.github_url || '',
-      tech: techArray,
-      category: p.category || 'Web App',
-      featured: p.featured || false
-    };
-  });
+      return {
+        id: p._id || p.id,
+        title: p.title || 'Untitled Project',
+        description: p.description || '',
+        image: p.image_url || '',
+        link: p.demo_url || p.live_url || '',
+        github_url: p.github_url || '',
+        tech: techArray,
+        category: p.category || 'Web App',
+        featured: Boolean(p.featured),
+        priority: p.priority !== undefined && p.priority !== null ? Number(p.priority) : 999
+      };
+    })
+    .sort((a, b) => {
+      const pA = a.priority ?? 999;
+      const pB = b.priority ?? 999;
+      return pA - pB;
+    });
 
   const activeCertificates = certificatesFromDB.length > 0 ? certificatesFromDB : userCertificates;
 
