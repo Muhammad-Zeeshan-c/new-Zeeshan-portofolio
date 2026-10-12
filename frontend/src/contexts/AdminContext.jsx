@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.API_URL || 'http://localhost:3001/api';
 
 const AdminContext = createContext();
 
@@ -29,7 +29,7 @@ export const AdminProvider = ({ children }) => {
         try {
           const { timestamp, authenticated, adminId, token } = JSON.parse(sessionData);
           const now = new Date().getTime();
-          
+
           // Check if session is still valid (30 minutes)
           if (authenticated && token && (now - timestamp) < SESSION_DURATION) {
             setIsAuthenticated(true);
@@ -60,7 +60,7 @@ export const AdminProvider = ({ children }) => {
         if (sessionData) {
           const { timestamp } = JSON.parse(sessionData);
           const now = new Date().getTime();
-          
+
           if ((now - timestamp) >= SESSION_DURATION) {
             logout();
           }
@@ -98,7 +98,7 @@ export const AdminProvider = ({ children }) => {
           fullName: data.admin?.name || 'Muhammad Zeeshan',
           token: data.token // JWT token from backend
         };
-        
+
         localStorage.setItem('adminSession', JSON.stringify(sessionData));
         setIsAuthenticated(true);
         setAdminData({
@@ -108,7 +108,7 @@ export const AdminProvider = ({ children }) => {
         });
         setLoginAttempts(0);
         setLockoutTime(null);
-        
+
         console.log('✅ Admin logged in successfully via backend');
         return true;
       } else {
@@ -130,7 +130,7 @@ export const AdminProvider = ({ children }) => {
       if (err.message && err.message !== 'Connection error. Make sure the backend server is running.') {
         throw err;
       }
-      
+
       console.error('Login error:', err);
       throw new Error('Connection error. Make sure the backend server is running.');
     }
@@ -187,4 +187,4 @@ export const AdminProvider = ({ children }) => {
       {children}
     </AdminContext.Provider>
   );
-};
+};

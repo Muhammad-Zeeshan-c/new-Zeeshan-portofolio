@@ -12,6 +12,9 @@ const RETRY_DELAY_MS = 3000;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const conn = await mongoose.connect(process.env.MONGODB_URI, {

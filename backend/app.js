@@ -10,10 +10,23 @@ import cvRoutes from './routes/cvRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import galleryRoutes from './routes/galleryRoutes.js';
 
+// Import Database Connection
+import connectDB from './config/db.js';
+
 // Import Error Middleware
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
+
+// Ensure DB is connected for serverless environments (e.g. Vercel)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('Database connection error in request middleware:', err);
+  }
+  next();
+});
 
 // Global Middleware
 app.use(cors());
