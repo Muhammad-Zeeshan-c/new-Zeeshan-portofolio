@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaExternalLinkAlt, FaReact, FaNodeJs, FaHtml5, FaCss3Alt,
-  FaJsSquare, FaTools, FaFigma, FaGithub, FaTimes, FaDownload
+  FaJsSquare, FaTools, FaFigma, FaGithub, FaTimes, FaDownload, FaJava
 } from 'react-icons/fa';
 import {
   SiTailwindcss, SiNextdotjs, SiVercel, SiMongodb,
-  SiExpress, SiPostgresql
+  SiExpress, SiMysql, SiPython, SiCplusplus, SiLangchain, SiHuggingface
 } from 'react-icons/si';
 import { PiCodeBold } from "react-icons/pi";
 import { LuBadge } from "react-icons/lu";
@@ -29,10 +29,17 @@ const techStack = {
   backend: [
     { name: "Node.js", icon: <FaNodeJs className="text-[#339933]" /> },
     { name: "Express", icon: <SiExpress className="text-white" /> },
+    { name: "Python", icon: <SiPython className="text-[#3776AB]" /> },
+    { name: "C++", icon: <SiCplusplus className="text-[#00599C]" /> },
+    { name: "Java", icon: <FaJava className="text-[#ED8B00]" /> },
+  ],
+  "AI & Machine Learning": [
+    { name: "LangChain", icon: <SiLangchain className="text-[#22c55e]" /> },
+    { name: "Hugging Face", icon: <SiHuggingface className="text-[#FFD21E]" /> },
   ],
   database: [
     { name: "MongoDB", icon: <SiMongodb className="text-[#47A248]" /> },
-    { name: "PostgreSQL", icon: <SiPostgresql className="text-[#336791]" /> },
+    { name: "MySQL", icon: <SiMysql className="text-[#4479A1]" /> },
   ],
   tools: [
     { name: "Git & GitHub", icon: <FaGithub className="text-white" /> },
@@ -102,9 +109,11 @@ const ProjectDetailModal = ({ project, onClose }) => {
   const techIcons = {
     "Next.js": <SiNextdotjs />, "React": <FaReact />, "TailwindCSS": <SiTailwindcss />,
     "Framer Motion": "✦", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
-    "MongoDB": <SiMongodb />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚",
+    "MongoDB": <SiMongodb />, "MySQL": <SiMysql />, "Python": <SiPython />,
+    "C++": <SiCplusplus />, "Java": <FaJava />, "LangChain": <SiLangchain />,
+    "Hugging Face": <SiHuggingface />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚",
     "JavaScript": <FaJsSquare />, "HTML5": <FaHtml5 />, "CSS3": <FaCss3Alt />,
-    "PostgreSQL": <SiPostgresql />, "Vercel": <SiVercel />, "Git & GitHub": <FaGithub />
+    "Vercel": <SiVercel />, "Git & GitHub": <FaGithub />
   };
 
   return (
@@ -213,7 +222,9 @@ const ProjectCard = ({ project, onClick }) => {
   const techIcons = {
     "Next.js": <SiNextdotjs />, "React": <FaReact />, "TailwindCSS": <SiTailwindcss />,
     "Framer Motion": "✦", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
-    "MongoDB": <SiMongodb />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚"
+    "MongoDB": <SiMongodb />, "MySQL": <SiMysql />, "Python": <SiPython />,
+    "C++": <SiCplusplus />, "Java": <FaJava />, "LangChain": <SiLangchain />,
+    "Hugging Face": <SiHuggingface />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚"
   };
 
   const techList = project.tech || project.tags || [];
@@ -336,8 +347,17 @@ function ProjectSection() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingCerts, setLoadingCerts] = useState(true);
 
-  const INITIAL_CERTIFICATES_TO_SHOW = 6;
-  const [visibleCertificatesCount, setVisibleCertificatesCount] = useState(INITIAL_CERTIFICATES_TO_SHOW);
+  const [isColumnMode, setIsColumnMode] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [showAllCertificates, setShowAllCertificates] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsColumnMode(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     async function loadProjects() {
@@ -414,13 +434,16 @@ function ProjectSection() {
 
   const activeCertificates = certificatesFromDB.length > 0 ? certificatesFromDB : userCertificates;
 
-  const handleShowMore = () => {
-    setVisibleCertificatesCount(activeCertificates.length);
-  };
+  const projectLimit = isColumnMode ? 3 : 6;
+  const certificateLimit = isColumnMode ? 3 : 6;
 
-  const handleShowLess = () => {
-    setVisibleCertificatesCount(INITIAL_CERTIFICATES_TO_SHOW);
-  };
+  const displayedProjects = showAllProjects 
+    ? transformedProjects 
+    : transformedProjects.slice(0, projectLimit);
+
+  const displayedCertificates = showAllCertificates 
+    ? activeCertificates 
+    : activeCertificates.slice(0, certificateLimit);
 
   return (
     <div id="project" className="w-full">
@@ -429,9 +452,9 @@ function ProjectSection() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="text-center mb-16"
+        className="text-center mb-10 sm:mb-16"
       >
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+        <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight">
           <span className="text-[#00B4D8]">PORTFOLIO</span>{' '}
           <span className="text-white">SHOWCASE</span>
         </h2>
@@ -439,16 +462,16 @@ function ProjectSection() {
 
       <div className="w-full">
         {/* Navigation Tabs */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-8 sm:mb-12">
           <motion.div
             layout
-            className="inline-flex w-full max-w-2xl rounded-2xl p-1.5 border border-white/10 bg-white/[0.03] backdrop-blur-md"
+            className="inline-flex w-full max-w-2xl rounded-2xl p-1 sm:p-1.5 border border-white/10 bg-white/[0.03] backdrop-blur-md"
           >
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex flex-1 flex-col items-center justify-center px-2 py-4 rounded-xl font-semibold text-sm sm:text-base transition-colors duration-300 outline-none ${activeTab === tab.id ? "text-white" : "text-white/50 hover:text-[#00B4D8]"
+                className={`relative flex flex-1 flex-col items-center justify-center px-1 sm:px-2 py-3 sm:py-4 rounded-xl font-semibold text-xs sm:text-sm md:text-base transition-colors duration-300 outline-none ${activeTab === tab.id ? "text-white" : "text-white/50 hover:text-[#00B4D8]"
                   }`}
                 whileTap={{ scale: 0.97 }}
                 whileHover={{ scale: 1.02 }}
@@ -461,9 +484,9 @@ function ProjectSection() {
                     transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                   />
                 )}
-                <span className="relative z-10 flex flex-col items-center gap-1.5">
-                  {tab.icon}
-                  <span className="font-bold">{tab.label}</span>
+                <span className="relative z-10 flex flex-col items-center gap-1 sm:gap-1.5">
+                  <span className="text-lg sm:text-2xl">{tab.icon}</span>
+                  <span className="font-bold text-center leading-tight">{tab.label}</span>
                 </span>
               </motion.button>
             ))}
@@ -471,7 +494,7 @@ function ProjectSection() {
         </div>
 
         {/* Tab Content Box */}
-        <div className="rounded-3xl p-4 sm:p-8 border border-white/10 bg-white/[0.02] backdrop-blur-md">
+        <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-6 md:p-8 border border-white/10 bg-white/[0.02] backdrop-blur-md">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -488,21 +511,48 @@ function ProjectSection() {
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00B4D8]"></div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {transformedProjects.length > 0 ? (
-                        transformedProjects.map((p, i) => (
-                          <ProjectCard
-                            key={p.id || i}
-                            project={p}
-                            onClick={setPreviewProject}
-                          />
-                        ))
-                      ) : (
-                        <div className="col-span-full text-center text-white/50 py-16">
-                          No projects available yet.
-                          <div className="mt-4 text-sm text-[#00B4D8]">
-                            Add projects via Admin Dashboard to see them here!
+                    <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                        {displayedProjects.length > 0 ? (
+                          displayedProjects.map((p, i) => (
+                            <ProjectCard
+                              key={p.id || i}
+                              project={p}
+                              onClick={setPreviewProject}
+                            />
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center text-white/50 py-16">
+                            No projects available yet.
+                            <div className="mt-4 text-sm text-[#00B4D8]">
+                              Add projects via Admin Dashboard to see them here!
+                            </div>
                           </div>
+                        )}
+                      </div>
+
+                      {/* Show More Button for Projects */}
+                      {transformedProjects.length > projectLimit && (
+                        <div className="flex justify-center mt-10 sm:mt-12">
+                          {!showAllProjects ? (
+                            <motion.button
+                              onClick={() => setShowAllProjects(true)}
+                              className="bg-[#00B4D8] hover:bg-[#0090ad] px-6 sm:px-8 py-3 rounded-full text-black font-bold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Show More ({transformedProjects.length - projectLimit} more)
+                            </motion.button>
+                          ) : (
+                            <motion.button
+                              onClick={() => setShowAllProjects(false)}
+                              className="bg-white/10 hover:bg-white/20 border border-white/10 px-6 sm:px-8 py-3 rounded-full text-white font-semibold text-sm sm:text-base transition-all duration-300"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Show Less
+                            </motion.button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -519,10 +569,10 @@ function ProjectSection() {
                     </div>
                   ) : (
                     <>
-                      {activeCertificates.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                      {displayedCertificates.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
                           <AnimatePresence>
-                            {activeCertificates.slice(0, visibleCertificatesCount).map((cert, i) => {
+                            {displayedCertificates.map((cert, i) => {
                               const certData = {
                                 id: cert._id || cert.id || i,
                                 title: cert.title || '',
@@ -545,21 +595,22 @@ function ProjectSection() {
                         </div>
                       )}
 
-                      {activeCertificates.length > INITIAL_CERTIFICATES_TO_SHOW && (
-                        <div className="flex justify-center mt-12">
-                          {visibleCertificatesCount < activeCertificates.length ? (
+                      {/* Show More Button for Certificates */}
+                      {activeCertificates.length > certificateLimit && (
+                        <div className="flex justify-center mt-10 sm:mt-12">
+                          {!showAllCertificates ? (
                             <motion.button
-                              onClick={handleShowMore}
-                              className="bg-[#00B4D8] hover:bg-[#0090ad] px-8 py-3 rounded-full text-black font-bold transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
+                              onClick={() => setShowAllCertificates(true)}
+                              className="bg-[#00B4D8] hover:bg-[#0090ad] px-6 sm:px-8 py-3 rounded-full text-black font-bold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
-                              Show More ({activeCertificates.length - visibleCertificatesCount} more)
+                              Show More ({activeCertificates.length - certificateLimit} more)
                             </motion.button>
                           ) : (
                             <motion.button
-                              onClick={handleShowLess}
-                              className="bg-white/10 hover:bg-white/20 border border-white/10 px-8 py-3 rounded-full text-white font-semibold transition-all duration-300"
+                              onClick={() => setShowAllCertificates(false)}
+                              className="bg-white/10 hover:bg-white/20 border border-white/10 px-6 sm:px-8 py-3 rounded-full text-white font-semibold text-sm sm:text-base transition-all duration-300"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >

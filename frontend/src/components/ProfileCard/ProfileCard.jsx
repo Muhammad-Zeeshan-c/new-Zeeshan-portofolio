@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import "./ProfileCard.css";
+import ZEESHAN from "../../assets/images/zeeshan.png";
 import ZAINFIX from "../../assets/images/ZAINFIX.png";
 
 const DEFAULT_BEHIND_GRADIENT =
@@ -43,10 +44,10 @@ const ProfileCardComponent = ({
   className = "",
   enableTilt = true,
   miniAvatarUrl,
-  name = "Javi A. Torres",
-  title = "Software Engineer",
-  handle = "javicodes",
-  status = "Online",
+  name = "Zeeshan",
+  title = "MERN Stack Developer & AI Engineer",
+  handle = "zeeshankhalid",
+  status = "Available",
   contactText = "Contact",
   showUserInfo = true,
   onContactClick,

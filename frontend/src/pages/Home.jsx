@@ -15,6 +15,7 @@ import apiService from '../services/api';
 const Lanyard = lazy(() => import('../components/Lanyard/Lanyard'));
 const Spline = lazy(() => import('@splinetool/react-spline'));
 const ProjectSection = lazy(() => import('../components/ProjectSection'));
+const Education = lazy(() => import('../components/Education'));
 const Contact = lazy(() => import('../components/Contact'));
 
 const Home = () => {
@@ -178,14 +179,14 @@ const Home = () => {
 
                     {/* About Content */}
                     <div className="max-w-7xl mx-auto px-4 sm:px-8">
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-10">
+                        <div className="flex flex-col min-[951px]:flex-row items-center justify-center gap-10">
                             {is3dEnabled && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     whileInView={{ opacity: 1, scale: 1 }}
                                     viewport={{ once: true, amount: 0.3 }}
                                     transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                                    className="md:w-1/3 flex justify-center"
+                                    className="hidden min-[951px]:flex min-[951px]:w-1/3 justify-center"
                                 >
                                     <div className="w-full h-[420px] md:h-[530px] flex items-center justify-center">
                                         <Suspense fallback={<div className="h-[420px] flex items-center justify-center text-white/40">Loading 3D Robot...</div>}>
@@ -200,23 +201,23 @@ const Home = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, amount: 0.3 }}
                                 transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                                className={`text-white text-center md:text-left transition-all duration-700 ${is3dEnabled ? 'md:w-2/3' : 'max-w-4xl mx-auto'}`}
+                                className={`text-white text-center min-[951px]:text-left transition-all duration-700 ${is3dEnabled ? 'min-[951px]:w-2/3 w-full' : 'max-w-4xl mx-auto'}`}
                             >
-                                <p className="text-xl md:text-2xl text-white/60 font-medium">Hello, I'm</p>
-                                <h3 className="text-3xl md:text-5xl font-bold text-white my-2 tracking-tight">Zeeshan Khalid</h3>
-                                <p className="text-white/80 leading-relaxed mt-4 text-justify">
+                                <p className="text-lg sm:text-xl md:text-2xl text-white/60 font-medium">Hello, I'm</p>
+                                <h3 className="text-2xl min-[360px]:text-3xl md:text-5xl font-bold text-white my-2 tracking-tight">Zeeshan Khalid</h3>
+                                <p className="text-white/80 leading-relaxed mt-4 text-justify text-sm sm:text-base">
                                     I'm a Software Engineering student at COMSATS University Lahore, a MERN Stack Developer, and an aspiring AI Engineer passionate about building modern, scalable, and user-focused applications. With a strong interest in Artificial Intelligence and Machine Learning, I'm exploring ways to integrate intelligent solutions into real-world products.
                                 </p>
-                                <p className="text-white/80 leading-relaxed mt-4 text-justify">
+                                <p className="text-white/80 leading-relaxed mt-4 text-justify text-sm sm:text-base">
                                     I enjoy solving problems, exploring new technologies, and turning ideas into meaningful digital experiences. I'm continuously developing my skills in software engineering and AI to build solutions that make a difference.
                                 </p>
-                                <p className="text-[#00B4D8] leading-relaxed mt-4 font-semibold text-justify">
+                                <p className="text-[#00B4D8] leading-relaxed mt-4 font-semibold text-justify text-sm sm:text-base">
                                     Have an idea, a project, or an opportunity to collaborate? Let's connect and make it happen.
                                 </p>
-                                <div className="my-6 bg-white/[0.03] border-l-4 border-[#00B4D8] p-4 rounded-r-lg italic text-white/80 border border-white/5">
+                                <div className="my-6 bg-white/[0.03] border-l-4 border-[#00B4D8] p-3.5 sm:p-4 rounded-r-lg italic text-white/80 border border-white/5 text-sm sm:text-base">
                                     "Whoever strives shall succeed."
                                 </div>
-                                <div className="flex flex-row gap-4 mt-8 justify-center md:justify-start items-center">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8 justify-center min-[951px]:justify-start items-center w-full">
                                     <ButtonMovingBorder 
                                         as="button"
                                         type="button"
@@ -243,30 +244,62 @@ const Home = () => {
                                         }}
                                         duration={3000} 
                                         borderRadius="0.75rem" 
-                                        className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)]">
+                                        className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)] w-full sm:w-auto px-6 py-3">
                                         <FaDownload /> Download CV
                                     </ButtonMovingBorder>
-                                    <ButtonMovingBorder as="a" href="#projects" duration={3000} borderRadius="0.75rem" className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)]">
+                                    <ButtonMovingBorder as="a" href="#projects" duration={3000} borderRadius="0.75rem" className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)] w-full sm:w-auto px-6 py-3">
                                         <FaBriefcase /> View Projects
                                     </ButtonMovingBorder>
                                 </div>
                             </motion.div>
                         </div>
 
-                        {/* Stats Cards */}
-                        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16 px-4 md:px-0">
+                        {/* Stats Cards - Compact mobile horizontal layout, rich desktop grid */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                            transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+                            className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 md:gap-8 max-w-5xl mx-auto mt-12 md:mt-16 px-1 sm:px-4 md:px-0"
+                        >
                             {stats.map((stat, index) => (
-                                <div key={index} className="group relative p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#00B4D8]/40 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,180,216,0.2)] cursor-pointer">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex flex-col">
-                                            <div className="p-3 mb-4 rounded-xl bg-white/5 border border-white/10 w-max group-hover:bg-[#00B4D8]/10 group-hover:border-[#00B4D8]/30 transition-all duration-300">
-                                                <div className="text-2xl text-[#00B4D8]">{stat.icon}</div>
+                                <div
+                                    key={index}
+                                    className="group relative p-3.5 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#00B4D8]/40 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,180,216,0.2)] cursor-pointer"
+                                >
+                                    {/* Mobile: Compact horizontal row (< sm) */}
+                                    <div className="flex items-center justify-between sm:hidden">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 group-hover:bg-[#00B4D8]/10 group-hover:border-[#00B4D8]/30 transition-all duration-300 flex-shrink-0">
+                                                <div className="text-xl text-[#00B4D8]">{stat.icon}</div>
                                             </div>
-                                            <h3 className="text-sm font-semibold uppercase tracking-wider text-white/70 group-hover:text-white transition-colors duration-300">{stat.title}</h3>
+                                            <div className="min-w-0">
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-white/80 group-hover:text-white transition-colors truncate">
+                                                    {stat.title}
+                                                </h3>
+                                                <p className="text-[11px] text-white/40 truncate">{stat.description}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-2xl font-bold text-white transition-colors group-hover:text-[#00B4D8] pl-2 flex-shrink-0">
+                                            {stat.value}
+                                        </p>
+                                    </div>
+
+                                    {/* Tablet & Desktop Layout (sm+) */}
+                                    <div className="hidden sm:flex justify-between items-start">
+                                        <div className="flex flex-col">
+                                            <div className="p-2.5 sm:p-3 mb-3 sm:mb-4 rounded-xl bg-white/5 border border-white/10 w-max group-hover:bg-[#00B4D8]/10 group-hover:border-[#00B4D8]/30 transition-all duration-300">
+                                                <div className="text-xl sm:text-2xl text-[#00B4D8]">{stat.icon}</div>
+                                            </div>
+                                            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/70 group-hover:text-white transition-colors duration-300">
+                                                {stat.title}
+                                            </h3>
                                             <p className="text-xs text-white/40 mt-1">{stat.description}</p>
                                         </div>
                                         <div className="flex flex-col items-end">
-                                            <p className="text-4xl md:text-5xl font-bold text-white transition-all duration-300 group-hover:text-[#00B4D8]">{stat.value}</p>
+                                            <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-white transition-all duration-300 group-hover:text-[#00B4D8]">
+                                                {stat.value}
+                                            </p>
                                             <FaArrowRight className="text-white/30 mt-auto group-hover:text-[#00B4D8] transition-all duration-300 -rotate-45" />
                                         </div>
                                     </div>
@@ -289,7 +322,14 @@ const Home = () => {
             </section>
 
             {/* ======================================================== */}
-            {/* SECTION 4: CONTACT (#contact) - Black Background         */}
+            {/* SECTION 4: EDUCATION (#education) - Black Background      */}
+            {/* ======================================================== */}
+            <Suspense fallback={<div className="py-20 text-center text-white/40">Loading Education...</div>}>
+                <Education />
+            </Suspense>
+
+            {/* ======================================================== */}
+            {/* SECTION 5: CONTACT (#contact) - Black Background         */}
             {/* ======================================================== */}
             <section id="contact" className="w-full bg-[#000000] py-20 pb-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-8">

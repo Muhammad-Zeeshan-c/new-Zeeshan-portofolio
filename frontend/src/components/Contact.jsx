@@ -82,7 +82,7 @@ const Contact = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 sm:p-10 border border-white/10"
+            className="bg-white/[0.03] backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-white/10"
           >
             <h3 className="text-2xl font-bold text-white mb-6">Send a Message</h3>
 
@@ -173,29 +173,29 @@ const Contact = () => {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="space-y-8 flex flex-col justify-between"
           >
-            <div className="bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 sm:p-10 border border-white/10 space-y-6">
-              <h3 className="text-2xl font-bold text-white">Contact Information</h3>
+            <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-white/10 space-y-6">
+              <h3 className="text-xl sm:text-2xl font-bold text-white">Contact Information</h3>
               
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                  <div className="p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20">
-                    <FaEnvelope className="text-xl" />
+                <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <div className="p-2.5 sm:p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20 flex-shrink-0">
+                    <FaEnvelope className="text-lg sm:text-xl" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">Email</p>
-                    <a href="mailto:zeeshan@comsats.edu.pk" className="text-white font-medium hover:text-[#00B4D8] transition-colors">
+                    <a href="mailto:zeeshan@comsats.edu.pk" className="text-white font-medium hover:text-[#00B4D8] transition-colors text-sm sm:text-base break-all">
                       zeeshan@comsats.edu.pk
                     </a>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                  <div className="p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20">
-                    <FaMapMarkerAlt className="text-xl" />
+                <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <div className="p-2.5 sm:p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20 flex-shrink-0">
+                    <FaMapMarkerAlt className="text-lg sm:text-xl" />
                   </div>
                   <div>
                     <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">Location</p>
-                    <p className="text-white font-medium">COMSATS University, Lahore, Pakistan</p>
+                    <p className="text-white font-medium text-sm sm:text-base">Lahore, PAKISTAN</p>
                   </div>
                 </div>
               </div>
@@ -203,17 +203,17 @@ const Contact = () => {
               {/* Social Links */}
               <div className="pt-4 border-t border-white/10">
                 <p className="text-sm text-white/50 mb-4 font-semibold uppercase tracking-wider">Connect on Socials</p>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-2.5 sm:gap-4">
                   {socialLinks.map((s, i) => (
                     <a
                       key={i}
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-[#00B4D8] hover:border-[#00B4D8]/40 hover:bg-[#00B4D8]/10 transition-all duration-300"
+                      className="flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-[#00B4D8] hover:border-[#00B4D8]/40 hover:bg-[#00B4D8]/10 transition-all duration-300"
                     >
-                      <span className="text-lg">{s.icon}</span>
-                      <span className="text-sm font-semibold">{s.name}</span>
+                      <span className="text-base sm:text-lg">{s.icon}</span>
+                      <span className="text-xs sm:text-sm font-semibold">{s.name}</span>
                     </a>
                   ))}
                 </div>

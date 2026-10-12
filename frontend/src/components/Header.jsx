@@ -131,18 +131,18 @@ const Header = () => {
                   : "bg-[#000000] border-b border-white/5"
               }`}
             >
-              <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-8">
+              <nav className="max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-8">
                 {/* --- MOBILE HEADER --- */}
                 <div className="w-full flex items-center justify-between md:hidden">
-                  <a href="/" onClick={(e) => handleNavClick(e, '#home')} className="flex items-center gap-3">
-                    <img src={bangzenLogo} alt="Logo" className="h-10 w-10 flex-shrink-0" />
-                    <span className="font-bold text-base text-white">
+                  <a href="/" onClick={(e) => handleNavClick(e, '#home')} className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <img src={bangzenLogo} alt="Logo" className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0" />
+                    <span className="font-bold text-sm sm:text-base text-white truncate">
                       Zeeshan <span className="text-[#00B4D8]">Khalid</span>
                     </span>
                   </a>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="text-white hover:text-[#00B4D8] text-2xl transition-colors p-1"
+                    className="text-white hover:text-[#00B4D8] text-2xl transition-colors p-1 flex-shrink-0"
                     aria-label="Toggle Menu"
                   >
                     &#9776;
@@ -152,7 +152,7 @@ const Header = () => {
                 {/* --- DESKTOP HEADER --- */}
                 <div className="hidden w-full md:grid grid-cols-3 items-center">
                   {/* Left Navigation */}
-                  <ul className="justify-self-start flex items-center list-none gap-8">
+                  <ul className="justify-self-start flex items-center list-none gap-6 lg:gap-8">
                     <NavLink href="#home">Home</NavLink>
                     <NavLink href="#projects">Projects</NavLink>
                     <NavLink href="/gallery" isGallery>Gallery</NavLink>
@@ -171,9 +171,10 @@ const Header = () => {
                   </a>
 
                   {/* Right Navigation & Admin Access */}
-                  <div className="justify-self-end flex items-center gap-8">
-                    <ul className="flex items-center list-none gap-8">
+                  <div className="justify-self-end flex items-center gap-6 lg:gap-8">
+                    <ul className="flex items-center list-none gap-6 lg:gap-8">
                       <NavLink href="#about">About</NavLink>
+                      <NavLink href="#education">Education</NavLink>
                       <NavLink href="#contact">Contact</NavLink>
                     </ul>
                     <button
@@ -198,6 +199,7 @@ const Header = () => {
         items={[
           { label: 'Home', link: '#home', onClick: (e) => handleNavClick(e, '#home') },
           { label: 'Projects', link: '#projects', onClick: (e) => handleNavClick(e, '#projects') },
+          { label: 'Education', link: '#education', onClick: (e) => handleNavClick(e, '#education') },
           { label: 'Gallery', link: '/gallery', onClick: (e) => handleNavClick(e, '/gallery') },
           { label: 'About', link: '#about', onClick: (e) => handleNavClick(e, '#about') },
           { label: 'Contact', link: '#contact', onClick: (e) => handleNavClick(e, '#contact') },
