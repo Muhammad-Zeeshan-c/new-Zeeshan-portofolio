@@ -15,20 +15,12 @@ import { LiaLayerGroupSolid } from "react-icons/lia";
 import { useNavbar } from '../contexts/NavbarContext';
 import apiService from '../services/api';
 
-// ===================================
-// DATA PROYEK (Dynamic from DB)
-// ===================================
-const dummyProjects = [];
-
-// ===================================
-// DATA SERTIFIKAT (Dynamic from DB)
-// ===================================
 const userCertificates = [];
 
 const techStack = {
   frontend: [
     { name: "React", icon: <FaReact className="text-[#61DAFB]" /> },
-    { name: "Next.js", icon: <SiNextdotjs className="dark:text-white text-slate-900" /> },
+    { name: "Next.js", icon: <SiNextdotjs className="text-white" /> },
     { name: "JavaScript", icon: <FaJsSquare className="text-[#F7DF1E]" /> },
     { name: "Tailwind CSS", icon: <SiTailwindcss className="text-[#38B2AC]" /> },
     { name: "HTML5", icon: <FaHtml5 className="text-[#E34F26]" /> },
@@ -36,34 +28,18 @@ const techStack = {
   ],
   backend: [
     { name: "Node.js", icon: <FaNodeJs className="text-[#339933]" /> },
-    { name: "Express", icon: <SiExpress className="dark:text-white text-slate-900" /> },
+    { name: "Express", icon: <SiExpress className="text-white" /> },
   ],
   database: [
     { name: "MongoDB", icon: <SiMongodb className="text-[#47A248]" /> },
     { name: "PostgreSQL", icon: <SiPostgresql className="text-[#336791]" /> },
   ],
   tools: [
-    { name: "Git & GitHub", icon: <FaGithub className="dark:text-white text-slate-900" /> },
-    { name: "Vercel", icon: <SiVercel className="dark:text-white text-slate-900" /> },
+    { name: "Git & GitHub", icon: <FaGithub className="text-white" /> },
+    { name: "Vercel", icon: <SiVercel className="text-white" /> },
     { name: "Figma", icon: <FaFigma className="text-[#F24E1E]" /> },
-    { name: "Tools Lain", icon: <FaTools className="text-gray-400" /> },
+    { name: "Other Tools", icon: <FaTools className="text-gray-400" /> },
   ],
-};
-
-// ===================================
-// HELPER & ANIMATION COMPONENTS
-// ===================================
-const LineShadowText = ({ children, className, shadowColor = "#4079ff", ...props }) => {
-  return (
-    <motion.span
-      style={{ "--shadow-color": shadowColor }}
-      className={`relative z-0 line-shadow-effect ${className}`}
-      data-text={children}
-      {...props}
-    >
-      {children}
-    </motion.span>
-  );
 };
 
 // ===================================
@@ -73,26 +49,26 @@ const CertificateCard = ({ cert, onClick }) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.8 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
+      exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="group relative cursor-pointer"
-      whileHover={{ y: -8 }}
+      whileHover={{ y: -6 }}
       onClick={() => onClick(cert)}
     >
-      <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden dark:shadow-lg shadow-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-cyan-400/30 transition-all duration-500">
+      <div className="relative h-80 sm:h-96 rounded-2xl overflow-hidden bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:border-[#00B4D8]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,180,216,0.2)]">
         <div className="absolute inset-0">
-          <img src={cert.image} alt={cert.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/60 to-slate-900/30 group-hover:from-slate-900/95 transition-all duration-500"></div>
+          <img src={cert.image} alt={cert.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 group-hover:from-black/90 transition-all duration-300"></div>
         </div>
         <div className="absolute inset-0 p-5 flex flex-col justify-between">
           <div className="flex-1 flex items-start justify-between">
             <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-              <span className="text-xs font-semibold text-cyan-300 uppercase tracking-wider">{cert.issuer}</span>
+              <span className="text-xs font-semibold text-[#00B4D8] uppercase tracking-wider">{cert.issuer}</span>
             </div>
-            <div className="bg-emerald-500/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-400/30">
-              <span className="text-xs font-bold text-emerald-300">{cert.date}</span>
+            <div className="bg-[#00B4D8]/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#00B4D8]/30">
+              <span className="text-xs font-bold text-[#00B4D8]">{cert.date}</span>
             </div>
           </div>
           <div className="space-y-3">
@@ -100,19 +76,18 @@ const CertificateCard = ({ cert, onClick }) => {
               <h3 className="text-lg sm:text-xl font-bold text-white line-clamp-2 leading-tight">{cert.title}</h3>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-slate-300">
+              <div className="flex items-center space-x-2 text-white/70">
                 <FaDownload className="text-sm" />
                 <span className="text-sm font-medium">View Certificate</span>
               </div>
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="bg-cyan-500/20 backdrop-blur-md p-2 rounded-full border border-cyan-400/30">
-                  <FaExternalLinkAlt className="text-cyan-300 text-sm" />
+                <div className="bg-[#00B4D8]/20 backdrop-blur-md p-2 rounded-full border border-[#00B4D8]/30">
+                  <FaExternalLinkAlt className="text-[#00B4D8] text-sm" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/0 via-transparent to-emerald-500/0 group-hover:from-cyan-500/10 group-hover:to-emerald-500/10 transition-all duration-500"></div>
       </div>
     </motion.div>
   );
@@ -126,7 +101,7 @@ const ProjectDetailModal = ({ project, onClose }) => {
 
   const techIcons = {
     "Next.js": <SiNextdotjs />, "React": <FaReact />, "TailwindCSS": <SiTailwindcss />,
-    "Framer Motion": " गति ", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
+    "Framer Motion": "✦", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
     "MongoDB": <SiMongodb />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚",
     "JavaScript": <FaJsSquare />, "HTML5": <FaHtml5 />, "CSS3": <FaCss3Alt />,
     "PostgreSQL": <SiPostgresql />, "Vercel": <SiVercel />, "Git & GitHub": <FaGithub />
@@ -141,74 +116,91 @@ const ProjectDetailModal = ({ project, onClose }) => {
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 50 }}
+        initial={{ scale: 0.95, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 50 }}
+        exit={{ scale: 0.95, opacity: 0, y: 30 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative max-w-5xl w-full dark:bg-slate-900/90 bg-white/95 backdrop-blur-xl rounded-3xl border dark:border-white/10 border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative max-w-4xl w-full bg-[#0a0a0a] backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <div className="absolute top-4 right-4 z-20">
-          <button onClick={onClose} className="dark:bg-black/40 bg-slate-200/80 hover:bg-red-500/20 backdrop-blur-md p-3 rounded-full dark:border-white/10 border-slate-300 hover:border-red-500/30 transition-all duration-300 group">
-            <FaTimes className="dark:text-white/70 text-slate-600 group-hover:text-red-500" />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-white/10 backdrop-blur-md p-2.5 rounded-full border border-white/10 transition-colors text-white/70 hover:text-white"
+        >
+          <FaTimes />
+        </button>
 
-        <div className="flex flex-col md:flex-row h-full overflow-y-auto custom-scrollbar">
-          {/* Image Section */}
-          <div className="w-full md:w-1/2 relative min-h-[300px] md:min-h-full">
-            <img src={project.image} alt={project.title} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-900 via-slate-900/40 to-transparent"></div>
-          </div>
+        <div className="overflow-y-auto w-full">
+          {project.image && (
+            <div className="w-full h-64 sm:h-80 relative overflow-hidden bg-black">
+              <img
+                src={project.image}
+                alt={project.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
+            </div>
+          )}
 
-          {/* Content Section */}
-          <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col">
-            <div className="flex-1">
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {(project.tech || project.tags || []).map((t, i) => (
-                  <span key={i} className="flex items-center gap-1 text-xs font-mono px-3 py-1.5 rounded-full dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-300 text-cyan-700 dark:border-cyan-500/20 border-cyan-300">
-                    {techIcons?.[t]} {t}
+          <div className="p-6 sm:p-10 space-y-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="px-3 py-1 rounded-full bg-[#00B4D8]/10 border border-[#00B4D8]/30 text-[#00B4D8] text-xs font-semibold tracking-wider uppercase">
+                  {project.category || "Project"}
+                </span>
+                {project.featured && (
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                    ⭐ Featured
                   </span>
-                ))}
+                )}
               </div>
-
-              <h2 className="text-3xl font-bold dark:text-white text-slate-900 mb-4 leading-tight">{project.title}</h2>
-              <p className="dark:text-slate-300 text-slate-600 leading-relaxed mb-6 text-lg">{project.description}</p>
-
-              {project.featured && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg mb-6">
-                  <span className="text-yellow-400">⭐ Featured Project</span>
-                </div>
-              )}
+              <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">{project.title}</h2>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-8 border-t border-white/10">
-              {project.link !== '#' && (
+            <p className="text-white/80 leading-relaxed text-base sm:text-lg">
+              {project.description}
+            </p>
+
+            {project.tech && project.tech.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-3">Technologies Used</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.tech.map((t, i) => (
+                    <span
+                      key={i}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/90 text-sm"
+                    >
+                      {techIcons[t] || null}
+                      <span>{t}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-white/10">
+              {project.link && (
                 <a
                   href={project.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-emerald-600 dark:hover:from-cyan-500 dark:hover:to-emerald-500 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 hover:-translate-y-1"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-[#00B4D8] hover:bg-[#0090ad] text-black font-bold rounded-xl transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
                 >
                   <FaExternalLinkAlt />
                   <span>Live Demo</span>
                 </a>
               )}
-
-              {/* Assuming GitHub link might be stored in a different field or same link if generic */}
-              {/* For now using project.link as fallback, ideally should have github specific field passed */}
-              <a
-                href={project.link} // Adjust if you have a specific github_url field
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 dark:bg-slate-800 bg-slate-700 dark:hover:bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl dark:border-slate-700 border-slate-600 transition-all duration-300 hover:-translate-y-1"
-              >
-                <FaGithub className="text-xl" />
-                <span>Source Code</span>
-              </a>
+              {project.github_url && (
+                <a
+                  href={project.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all duration-300"
+                >
+                  <FaGithub className="text-xl" />
+                  <span>Source Code</span>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -217,13 +209,10 @@ const ProjectDetailModal = ({ project, onClose }) => {
   );
 };
 
-// ===================================
-// KOMPONEN KARTU PROYEK
-// ===================================
 const ProjectCard = ({ project, onClick }) => {
   const techIcons = {
     "Next.js": <SiNextdotjs />, "React": <FaReact />, "TailwindCSS": <SiTailwindcss />,
-    "Framer Motion": " गति ", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
+    "Framer Motion": "✦", "Node.js": <FaNodeJs />, "Express": <SiExpress />,
     "MongoDB": <SiMongodb />, "JWT": "🔑", "Figma": <FaFigma />, "Storybook": "📚"
   };
 
@@ -232,39 +221,38 @@ const ProjectCard = ({ project, onClick }) => {
   return (
     <div
       onClick={() => onClick(project)}
-      className="group relative h-64 sm:h-72 rounded-2xl overflow-hidden transition-all duration-300 dark:shadow-none shadow-lg hover:shadow-xl dark:hover:shadow-cyan-500/30 hover:-translate-y-2 cursor-pointer"
-      style={{ background: project.image ? `url('${project.image}') center/cover no-repeat` : 'rgba(15, 23, 42, 0.8)' }}
+      className="group relative h-80 sm:h-96 rounded-2xl overflow-hidden transition-all duration-300 border border-white/10 hover:border-[#00B4D8]/50 hover:shadow-[0_0_20px_rgba(0,180,216,0.2)] hover:-translate-y-1.5 cursor-pointer bg-white/[0.03]"
+      style={{ background: project.image ? `url('${project.image}') center/contain no-repeat` : undefined }}
     >
-      <div className="absolute inset-0 dark:bg-black/60 bg-slate-900/70 dark:group-hover:bg-black/40 group-hover:bg-slate-900/50 transition-colors duration-500"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/40 group-hover:from-black/95 transition-colors duration-300"></div>
 
-      <div className="absolute inset-0 flex flex-col justify-between p-6 opacity-100 transition-opacity duration-300">
-        <div className="translate-y-0 group-hover:-translate-y-2 transition-transform duration-500">
+      <div className="absolute inset-0 flex flex-col justify-between p-6 z-10">
+        <div>
           <div className="flex justify-between items-start">
-            <h3 className="text-2xl font-bold text-white dark:group-hover:text-cyan-300 group-hover:text-cyan-400 transition-colors">{project.title}</h3>
-            <div className="bg-white/10 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <FaExternalLinkAlt className="text-white" />
+            <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-[#00B4D8] transition-colors">{project.title}</h3>
+            <div className="bg-white/10 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <FaExternalLinkAlt className="text-white text-xs" />
             </div>
           </div>
-          <p className="text-slate-200 dark:text-slate-300 mt-2 text-sm line-clamp-2 leading-relaxed opacity-90 group-hover:opacity-100">{project.description}</p>
+          <p className="text-white/70 mt-2 text-sm line-clamp-3 leading-relaxed">{project.description}</p>
         </div>
 
-        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 opacity-0 group-hover:opacity-100">
+        <div>
           <div className="flex flex-wrap gap-2">
             {techList.slice(0, 3).map((t, i) => (
-              <span key={i} className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/20 backdrop-blur-sm">
-                {techIcons?.[t] || t}
+              <span key={i} className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#00B4D8]/10 text-[#00B4D8] border border-[#00B4D8]/20 backdrop-blur-sm">
+                {techIcons?.[t] || null}
+                <span>{t}</span>
               </span>
             ))}
             {techList.length > 3 && (
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10 text-white/70 border border-white/10">
                 +{techList.length - 3}
               </span>
             )}
           </div>
         </div>
       </div>
-
-      <div className="absolute inset-0 rounded-2xl border border-white/10 group-hover:border-cyan-400/50 transition-colors duration-300 pointer-events-none"></div>
     </div>
   );
 };
@@ -284,33 +272,30 @@ const CertificatePreviewModal = ({ certificate, onClose }) => {
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 50 }}
+        initial={{ scale: 0.95, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 50 }}
+        exit={{ scale: 0.95, opacity: 0, y: 30 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative max-w-4xl w-full dark:bg-slate-900/90 bg-white/95 backdrop-blur-xl rounded-3xl border dark:border-white/10 border-slate-200 shadow-2xl overflow-hidden flex flex-col md:flex-row"
+        className="relative max-w-4xl w-full bg-[#0a0a0a] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <div className="absolute top-4 right-4 z-20">
-          <button onClick={onClose} className="dark:bg-black/40 bg-slate-200/80 hover:bg-red-500/20 backdrop-blur-md p-2 rounded-full dark:border-white/10 border-slate-300 hover:border-red-500/30 transition-all duration-300 group">
-            <FaTimes className="dark:text-white/70 text-slate-600 group-hover:text-red-500" />
+          <button onClick={onClose} className="bg-black/60 hover:bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/10 transition-colors group">
+            <FaTimes className="text-white/70 group-hover:text-white" />
           </button>
         </div>
 
-        {/* Image Section */}
-        <div className="w-full md:w-3/5 relative min-h-[300px] md:min-h-[500px] bg-slate-900">
-          <img src={certificate.image} alt={certificate.title} className="absolute inset-0 w-full h-full object-contain p-4 bg-slate-950/50" />
+        <div className="w-full md:w-3/5 relative min-h-[300px] md:min-h-[500px] bg-black">
+          <img src={certificate.image} alt={certificate.title} className="absolute inset-0 w-full h-full object-contain p-4" />
         </div>
 
-        {/* Content Section */}
-        <div className="w-full md:w-2/5 p-8 flex flex-col justify-center dark:bg-slate-900/50 bg-white">
+        <div className="w-full md:w-2/5 p-8 flex flex-col justify-center bg-[#0a0a0a]">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-wider mb-4">
+            <div className="inline-block px-3 py-1 rounded-full bg-[#00B4D8]/10 border border-[#00B4D8]/30 text-[#00B4D8] text-xs font-bold tracking-wider mb-4 uppercase">
               {certificate.issuer}
             </div>
-            <h2 className="text-2xl font-bold dark:text-white text-slate-900 mb-2 leading-tight">{certificate.title}</h2>
-            <p className="text-slate-400 font-mono text-sm">{certificate.date}</p>
+            <h2 className="text-2xl font-bold text-white mb-2 leading-tight">{certificate.title}</h2>
+            <p className="text-white/50 font-mono text-sm">{certificate.date}</p>
           </div>
 
           <div className="space-y-4 mt-auto">
@@ -318,15 +303,15 @@ const CertificatePreviewModal = ({ certificate, onClose }) => {
               href={certificate.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-cyan-500/25 group"
+              className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-[#00B4D8] hover:bg-[#0090ad] text-black font-bold rounded-xl transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
             >
-              <FaDownload className="group-hover:animate-bounce" />
+              <FaDownload />
               <span>Download / View PDF</span>
             </a>
 
             <button
               onClick={onClose}
-              className="w-full px-6 py-3 dark:bg-slate-800 bg-slate-200 dark:hover:bg-slate-700 hover:bg-slate-300 dark:text-slate-300 text-slate-700 font-semibold rounded-xl transition-all duration-300"
+              className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-white/80 font-semibold rounded-xl border border-white/10 transition-colors"
             >
               Close Preview
             </button>
@@ -343,102 +328,92 @@ const CertificatePreviewModal = ({ certificate, onClose }) => {
 function ProjectSection() {
   const [activeTab, setActiveTab] = useState('Projects');
   const [previewCertificate, setPreviewCertificate] = useState(null);
-  const [previewProject, setPreviewProject] = useState(null); // ✨ NEW STATE
+  const [previewProject, setPreviewProject] = useState(null);
   const { hideNavbar, showNavbar } = useNavbar();
 
-  // === Database States ===
   const [projectsFromDB, setProjectsFromDB] = useState([]);
   const [certificatesFromDB, setCertificatesFromDB] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingCerts, setLoadingCerts] = useState(true);
 
-  // === CHANGE START: State dan konstanta untuk Show More/Less ===
   const INITIAL_CERTIFICATES_TO_SHOW = 6;
   const [visibleCertificatesCount, setVisibleCertificatesCount] = useState(INITIAL_CERTIFICATES_TO_SHOW);
-  // === CHANGE END ===
 
-  // Fetch projects from database
   useEffect(() => {
-    async function fetchProjects() {
+    async function loadProjects() {
       try {
+        setLoadingProjects(true);
         const data = await apiService.getProjects();
-
-        if (data && data.length > 0) {
+        if (Array.isArray(data)) {
           setProjectsFromDB(data);
         }
       } catch (err) {
-        console.error('❌ Error fetching projects:', err);
+        console.error('Error fetching projects:', err);
       } finally {
         setLoadingProjects(false);
       }
     }
-    fetchProjects();
+    loadProjects();
   }, []);
 
-  // Fetch certificates from database
   useEffect(() => {
-    async function fetchCertificates() {
+    async function loadCertificates() {
       try {
+        setLoadingCerts(true);
         const data = await apiService.getCertificates();
-
-        if (data && data.length > 0) {
+        if (Array.isArray(data)) {
           setCertificatesFromDB(data);
         }
       } catch (err) {
-        console.error('❌ Error fetching certificates:', err);
+        console.error('Error fetching certificates:', err);
       } finally {
         setLoadingCerts(false);
       }
     }
-    fetchCertificates();
+    loadCertificates();
   }, []);
 
   useEffect(() => {
-    // Hide navbar when any modal is open
     if (previewCertificate || previewProject) {
       hideNavbar();
     } else {
       showNavbar();
     }
+    return () => showNavbar();
   }, [previewCertificate, previewProject, hideNavbar, showNavbar]);
 
-  useEffect(() => {
-    return () => {
-      showNavbar();
-    };
-  }, [showNavbar]);
-
   const tabs = [
-    { id: 'Projects', label: 'Projects', icon: <PiCodeBold className="text-[1.7em] mb-1" /> },
-    { id: 'Certificate', label: 'Certificates', icon: <LuBadge className="text-[1.5em] mb-1" /> },
-    { id: 'Tech Stack', label: 'Tech Stack', icon: <LiaLayerGroupSolid className="text-[1.5em] mb-1" /> },
+    { id: 'Projects', label: 'Projects', icon: <PiCodeBold className="text-2xl" /> },
+    { id: 'Certificate', label: 'Certifications', icon: <LuBadge className="text-2xl" /> },
+    { id: 'Tech Stack', label: 'Tech Stack', icon: <LiaLayerGroupSolid className="text-2xl" /> },
   ];
 
-  // Use database projects if available, fallback to dummy data
-  const activeProjects = projectsFromDB.length > 0 ? projectsFromDB : dummyProjects;
-
-  // Transform database projects to match UI format
-  const transformedProjects = activeProjects.map(p => {
+  const transformedProjects = projectsFromDB.map(p => {
+    let techArray = [];
+    if (Array.isArray(p.tech_stack)) {
+      techArray = p.tech_stack;
+    } else if (typeof p.tech_stack === 'string') {
+      try {
+        techArray = JSON.parse(p.tech_stack);
+      } catch {
+        techArray = p.tech_stack.split(',').map(s => s.trim());
+      }
+    }
     return {
-      id: p._id || p.id,
-      title: p.title || '',
+      id: p.id,
+      title: p.title || 'Untitled Project',
       description: p.description || '',
-      tech: p.tech || p.tags || [],
-      link: p.demo_url || p.link || p.github_url || '#',
-      github: p.github_url || p.github || '#',
-      image: p.image_url || p.image || '',
-      category: p.category || 'Database',
+      image: p.image_url || '',
+      link: p.live_url || p.demo_url || '',
+      github_url: p.github_url || '',
+      tech: techArray,
+      category: p.category || 'Web App',
       featured: p.featured || false
     };
   });
 
-  // Filter projects (show all loaded/transformed projects)
-  const filteredProjects = transformedProjects;
-
-  // Use database certificates if available, fallback to static data
   const activeCertificates = certificatesFromDB.length > 0 ? certificatesFromDB : userCertificates;
 
-  // === CHANGE START: Handler untuk tombol Show More/Less ===
   const handleShowMore = () => {
     setVisibleCertificatesCount(activeCertificates.length);
   };
@@ -446,57 +421,47 @@ function ProjectSection() {
   const handleShowLess = () => {
     setVisibleCertificatesCount(INITIAL_CERTIFICATES_TO_SHOW);
   };
-  // === CHANGE END ===
 
   return (
-    <section id="project" className="py-20">
-
-      <style>{`
-        @keyframes line-shadow-anim { 0% { background-position: 0 0; } 100% { background-position: 100% 100%; } }
-        .line-shadow-effect::after { content: attr(data-text); position: absolute; z-index: -1; left: 0.04em; top: 0.04em; background-image: linear-gradient(45deg, transparent 45%, var(--shadow-color) 45%, var(--shadow-color) 55%, transparent 0); background-size: 0.06em 0.06em; -webkit-background-clip: text; background-clip: text; color: transparent; animation: line-shadow-anim 30s linear infinite; }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-      `}</style>
-
+    <div id="project" className="w-full">
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="text-center mb-20"
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="text-center mb-16"
       >
-        <h2 className="text-4xl font-bold font-moderniz">
-          <span className="dark:text-[#00ffdc] text-cyan-600"><LineShadowText shadowColor="#00b3a4">PORTFOLIO</LineShadowText></span>
-          {' '}
-          <span className="dark:text-white text-slate-800"><LineShadowText shadowColor="#bbbbbb">SHOWCASE</LineShadowText></span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+          <span className="text-[#00B4D8]">PORTFOLIO</span>{' '}
+          <span className="text-white">SHOWCASE</span>
         </h2>
       </motion.div>
 
       <div className="w-full">
+        {/* Navigation Tabs */}
         <div className="flex justify-center mb-12">
           <motion.div
             layout
-            className="inline-flex w-full max-w-4xl rounded-3xl p-2 shadow-lg border dark:border-slate-800 border-slate-200 dark:bg-gradient-to-r dark:from-[#101624] dark:via-[#0a1627] dark:to-[#0a223a] bg-white backdrop-blur-md"
-            style={{ boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+            className="inline-flex w-full max-w-2xl rounded-2xl p-1.5 border border-white/10 bg-white/[0.03] backdrop-blur-md"
           >
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex flex-1 flex-col items-center justify-center px-2 py-7 rounded-2xl font-semibold text-base transition-colors duration-300 outline-none ${activeTab === tab.id ? "dark:text-white text-slate-900" : "text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-300"}`}
+                className={`relative flex flex-1 flex-col items-center justify-center px-2 py-4 rounded-xl font-semibold text-sm sm:text-base transition-colors duration-300 outline-none ${activeTab === tab.id ? "text-white" : "text-white/50 hover:text-[#00B4D8]"
+                  }`}
                 whileTap={{ scale: 0.97 }}
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                style={{ zIndex: 1, minWidth: 0 }}
               >
                 {activeTab === tab.id && (
                   <motion.span
                     layoutId="tab-underline"
-                    className="absolute inset-0 dark:bg-gradient-to-br dark:from-[#0a223a] dark:to-[#101624] bg-slate-100 rounded-2xl border dark:border-transparent border-slate-200"
+                    className="absolute inset-0 bg-[#00B4D8]/20 border border-[#00B4D8]/40 rounded-xl"
                     transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-                    style={{ zIndex: -1, opacity: 0.96 }}
                   />
                 )}
-                <span className="relative z-10 flex flex-col items-center gap-2">
+                <span className="relative z-10 flex flex-col items-center gap-1.5">
                   {tab.icon}
                   <span className="font-bold">{tab.label}</span>
                 </span>
@@ -505,10 +470,8 @@ function ProjectSection() {
           </motion.div>
         </div>
 
-        <div
-          className="rounded-3xl p-0 md:p-6 shadow-xl border dark:border-slate-800/60 border-slate-100 mx-auto max-w-7xl bg-clip-padding dark:bg-slate-900/50 bg-white"
-          style={{ boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.18)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
-        >
+        {/* Tab Content Box */}
+        <div className="rounded-3xl p-4 sm:p-8 border border-white/10 bg-white/[0.02] backdrop-blur-md">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -516,43 +479,43 @@ function ProjectSection() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="p-6 md:p-10"
             >
+              {/* Tab 1: Projects */}
               {activeTab === 'Projects' && (
                 <>
                   {loadingProjects ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
+                    <div className="flex justify-center py-16">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00B4D8]"></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {filteredProjects.length > 0 ? (
-                        filteredProjects.map((p, i) => (
+                      {transformedProjects.length > 0 ? (
+                        transformedProjects.map((p, i) => (
                           <ProjectCard
                             key={p.id || i}
                             project={p}
-                            onClick={setPreviewProject} // ✨ PASS HANDLER
+                            onClick={setPreviewProject}
                           />
                         ))
                       ) : (
-                        <div className="col-span-full text-center text-slate-400 py-12">
+                        <div className="col-span-full text-center text-white/50 py-16">
                           No projects available yet.
-                          {projectsFromDB.length === 0 && (
-                            <div className="mt-4 text-sm text-cyan-400">
-                              Add projects via Admin Dashboard to see them here!
-                            </div>
-                          )}
+                          <div className="mt-4 text-sm text-[#00B4D8]">
+                            Add projects via Admin Dashboard to see them here!
+                          </div>
                         </div>
                       )}
                     </div>
                   )}
                 </>
               )}
+
+              {/* Tab 2: Certifications */}
               {activeTab === 'Certificate' && (
                 <div className="space-y-8">
                   {loadingCerts ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-400"></div>
+                    <div className="flex justify-center py-16">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00B4D8]"></div>
                     </div>
                   ) : (
                     <>
@@ -560,7 +523,6 @@ function ProjectSection() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                           <AnimatePresence>
                             {activeCertificates.slice(0, visibleCertificatesCount).map((cert, i) => {
-                              // Transform DB data to match CertificateCard props
                               const certData = {
                                 id: cert._id || cert.id || i,
                                 title: cert.title || '',
@@ -575,19 +537,20 @@ function ProjectSection() {
                           </AnimatePresence>
                         </div>
                       ) : (
-                        <div className="text-center text-slate-400 py-12">
+                        <div className="text-center text-white/50 py-16">
                           No certificates available yet.
-                          <div className="mt-4 text-sm text-cyan-400">
+                          <div className="mt-4 text-sm text-[#00B4D8]">
                             Add certifications via Admin Dashboard to display them here!
                           </div>
                         </div>
                       )}
+
                       {activeCertificates.length > INITIAL_CERTIFICATES_TO_SHOW && (
                         <div className="flex justify-center mt-12">
                           {visibleCertificatesCount < activeCertificates.length ? (
                             <motion.button
                               onClick={handleShowMore}
-                              className="group dark:bg-gradient-to-r dark:from-cyan-600 dark:to-emerald-600 dark:hover:from-cyan-500 dark:hover:to-emerald-500 bg-cyan-600 hover:bg-cyan-500 px-8 py-3 rounded-full text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-cyan-500/25"
+                              className="bg-[#00B4D8] hover:bg-[#0090ad] px-8 py-3 rounded-full text-black font-bold transition-all duration-300 shadow-lg shadow-[#00B4D8]/20"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -596,7 +559,7 @@ function ProjectSection() {
                           ) : (
                             <motion.button
                               onClick={handleShowLess}
-                              className="group bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 px-8 py-3 rounded-full text-white font-semibold transition-all duration-300 shadow-lg"
+                              className="bg-white/10 hover:bg-white/20 border border-white/10 px-8 py-3 rounded-full text-white font-semibold transition-all duration-300"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -609,16 +572,18 @@ function ProjectSection() {
                   )}
                 </div>
               )}
+
+              {/* Tab 3: Tech Stack */}
               {activeTab === 'Tech Stack' && (
                 <div className="max-w-4xl mx-auto space-y-8">
                   {Object.entries(techStack).map(([category, techs]) => (
                     <div key={category}>
-                      <h3 className="text-xl font-bold dark:text-cyan-300 text-cyan-600 capitalize mb-4 border-b-2 dark:border-slate-800 border-slate-200 pb-2">{category}</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                      <h3 className="text-lg sm:text-xl font-bold text-[#00B4D8] capitalize mb-4 border-b border-white/10 pb-2">{category}</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                         {techs.map((tech, i) => (
-                          <div key={i} className="flex flex-col items-center justify-center gap-3 p-4 rounded-xl dark:bg-slate-900/70 bg-white border dark:border-slate-800 border-slate-100 transition-all duration-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:border-cyan-500/30 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-none">
+                          <div key={i} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 hover:border-[#00B4D8]/40 hover:bg-[#00B4D8]/5">
                             <div className="text-4xl">{tech.icon}</div>
-                            <p className="text-sm dark:text-slate-300 text-slate-600">{tech.name}</p>
+                            <p className="text-sm text-white/80 font-medium">{tech.name}</p>
                           </div>
                         ))}
                       </div>
@@ -638,7 +603,6 @@ function ProjectSection() {
             onClose={() => setPreviewCertificate(null)}
           />
         )}
-        {/* ✨ Project Detail Modal */}
         {previewProject && (
           <ProjectDetailModal
             project={previewProject}
@@ -646,7 +610,7 @@ function ProjectSection() {
           />
         )}
       </AnimatePresence>
-    </section>
+    </div>
   );
 }
 

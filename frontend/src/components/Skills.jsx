@@ -1,14 +1,14 @@
 import React from 'react';
 
 const Skills = () => {
-  const skillsList = ['React', 'Express', 'MongoDB', 'Langchain', 'Hugging Face'];
+  const skillsList = ['React', 'Node.js', 'Express', 'MongoDB', 'Langchain', 'Hugging Face'];
 
   return (
-    <div className="flex flex-row flex-wrap gap-3 mt-6 justify-center md:justify-start w-full">
+    <div className="flex flex-row flex-wrap gap-2.5 mt-6 justify-center md:justify-start w-full">
       {skillsList.map((skill) => (
         <div
           key={skill}
-          className="px-5 py-2 text-sm dark:text-white text-slate-700 transition-all duration-300 ease-in-out border rounded-full cursor-pointer dark:border-white/20 border-slate-300 dark:bg-white/10 bg-white hover:bg-slate-100 dark:hover:bg-white/20 shadow-sm"
+          className="px-4 py-2 text-xs sm:text-sm text-white/90 font-medium transition-all duration-300 ease-in-out border rounded-full border-white/10 bg-white/[0.04] hover:bg-[#00B4D8]/10 hover:border-[#00B4D8]/50 hover:text-[#00B4D8] cursor-default"
         >
           {skill}
         </div>

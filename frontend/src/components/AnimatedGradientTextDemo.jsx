@@ -4,10 +4,10 @@ import { ChevronRight } from "lucide-react";
 
 export function AnimatedGradientTextDemo() {
   return (
-    <div className="group relative inline-flex items-center justify-center rounded-full px-4 py-1.5 dark:shadow-[inset_0_-8px_10px_#8fdfff1f] shadow-[inset_0_-2px_6px_rgba(6,182,212,0.15)] transition-shadow duration-500 ease-out dark:hover:shadow-[inset_0_-5px_10px_#8fdfff3f] hover:shadow-[inset_0_-3px_8px_rgba(6,182,212,0.25)] border dark:border-transparent border-cyan-200">
+    <div className="group relative inline-flex items-center justify-center rounded-full px-4 py-1.5 bg-white/[0.04] border border-white/10 hover:border-[#00B4D8]/40 transition-all duration-300">
       <span
         className={cn(
-          "absolute inset-0 block h-full w-50 animate-gradient rounded-[inherit] bg-gradient-to-r from-[#4053ff]/50 via-[#40ecff]/50 to-[#4053ff]/50 bg-[length:300%_100%] p-[1px]"
+          "absolute inset-0 block h-full w-full rounded-[inherit] bg-gradient-to-r from-[#00B4D8]/20 via-[#66d0ef]/20 to-[#00B4D8]/20 bg-[length:200%_100%] animate-gradient p-[1px]"
         )}
         style={{
           WebkitMask:
@@ -18,16 +18,16 @@ export function AnimatedGradientTextDemo() {
           WebkitClipPath: "padding-box",
         }}
       />
-      ✨
+      <span className="mr-1.5 text-xs">✨</span>
       <AnimatedGradientText
-        className="text-sm font-medium"
-        colorFrom="#4053ffff"
-        colorTo="#40ecffff"
+        className="text-xs sm:text-sm font-medium"
+        colorFrom="#00B4D8"
+        colorTo="#66d0ef"
       >
         Innovation For the Future
       </AnimatedGradientText>
       <ChevronRight
-        className="ml-1 size-4 dark:stroke-neutral-500 stroke-cyan-600 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5"
+        className="ml-1 size-3.5 text-[#00B4D8] transition-transform duration-300 ease-in-out group-hover:translate-x-0.5"
       />
     </div>
   );

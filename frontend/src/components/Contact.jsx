@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   FaGithub,
-  FaInstagram,
   FaLinkedin,
   FaPaperPlane,
   FaUser,
   FaEnvelope,
   FaComment,
   FaMapMarkerAlt,
-  FaCog
 } from 'react-icons/fa';
-import AdminDashboard from './AdminDashboard';
-import AdminLogin from './AdminLogin';
-import { useAdmin } from '../contexts/AdminContext';
 import apiService from '../services/api';
 
 const Contact = () => {
@@ -24,12 +19,7 @@ const Contact = () => {
     message: ''
   });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const { isAuthenticated } = useAdmin();
-
-  // Handle contact form submission
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmittingContact(true);
@@ -56,214 +46,174 @@ const Contact = () => {
       name: 'GitHub',
       icon: <FaGithub />,
       url: 'https://github.com/Muhammad-Zeeshan-c/',
-      color: 'from-gray-600 to-gray-800',
-      hoverColor: 'hover:shadow-gray-500/25'
     },
     {
       name: 'LinkedIn',
       icon: <FaLinkedin />,
       url: 'https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/',
-      color: 'from-blue-600 to-cyan-700',
-      hoverColor: 'hover:shadow-blue-500/25'
     }
   ];
 
   return (
-    <section id="contact" className="py-20 px-4 pb-32 relative overflow-hidden min-h-screen">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-transparent"></div>
-
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10 w-20 h-20 bg-cyan-500/10 rounded-full blur-xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-xl animate-pulse delay-1000"></div>
-
+    <div id="contact-wrapper" className="w-full relative">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Title */}
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-20 relative"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center mb-16"
         >
-          <h2 className="text-5xl md:text-6xl font-bold font-moderniz mb-4">
-            <span className="dark:bg-gradient-to-r dark:from-cyan-400 dark:via-emerald-400 dark:to-cyan-600 dark:bg-clip-text dark:text-transparent text-cyan-600">
-              GET IN
-            </span>
-            {' '}
-            <span className="dark:text-white text-slate-800">TOUCH</span>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4">
+            <span className="text-[#00B4D8]">GET IN</span>{' '}
+            <span className="text-white">TOUCH</span>
           </h2>
-          <p className="text-xl dark:text-slate-400 text-slate-600 font-cascadia">
+          <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto">
             Have an idea or opportunity? Let's connect and build something extraordinary!
           </p>
-
-          {/* Admin Access Button */}
-          <button
-            onClick={() => {
-              if (isAuthenticated) {
-                setIsAdminOpen(true);
-              } else {
-                setIsLoginOpen(true);
-              }
-            }}
-            className="absolute top-0 right-0 bg-slate-800/50 hover:bg-slate-700/50 backdrop-blur-sm p-3 rounded-full border border-slate-600/50 hover:border-cyan-400/50 transition-all duration-300 group"
-            title={isAuthenticated ? "Admin Panel" : "Admin Login"}
-          >
-            <FaCog className="text-slate-400 group-hover:text-cyan-400 transition-colors duration-300 group-hover:rotate-90" />
-          </button>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+        {/* Contact Form and Details Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Side - Contact Form */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-8"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 sm:p-10 border border-white/10"
           >
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600 to-emerald-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 hidden dark:block"></div>
-              <div className="relative dark:bg-slate-900/80 bg-white backdrop-blur-xl rounded-3xl p-8 border dark:border-slate-700/50 border-slate-100 dark:shadow-none shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 dark:bg-gradient-to-r dark:from-cyan-600 dark:to-emerald-600 bg-cyan-600 rounded-full">
-                    <FaPaperPlane className="text-white text-xl" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold dark:text-white text-slate-900">Send a Message</h3>
-                    <p className="dark:text-slate-400 text-slate-600">I'll get back to you as soon as possible</p>
-                  </div>
-                </div>
+            <h3 className="text-2xl font-bold text-white mb-6">Send a Message</h3>
 
-                <form onSubmit={handleContactSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 flex items-center gap-2">
-                      <FaUser className="text-cyan-400" />
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Your Name"
-                      value={contactForm.name}
-                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      className="w-full px-4 py-3.5 dark:bg-slate-800/50 bg-slate-50 border dark:border-slate-600/50 border-slate-200 rounded-xl dark:text-white text-slate-900 dark:placeholder-slate-400 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 flex items-center gap-2">
-                      <FaEnvelope className="text-cyan-400" />
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={contactForm.email}
-                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                      className="w-full px-4 py-3.5 dark:bg-slate-800/50 bg-slate-50 border dark:border-slate-600/50 border-slate-200 rounded-xl dark:text-white text-slate-900 dark:placeholder-slate-400 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 flex items-center gap-2">
-                      <FaComment className="text-cyan-400" />
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Project Inquiry / Job Opportunity"
-                      value={contactForm.subject}
-                      onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                      className="w-full px-4 py-3.5 dark:bg-slate-800/50 bg-slate-50 border dark:border-slate-600/50 border-slate-200 rounded-xl dark:text-white text-slate-900 dark:placeholder-slate-400 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 flex items-center gap-2">
-                      <FaPaperPlane className="text-cyan-400" />
-                      Message
-                    </label>
-                    <textarea
-                      placeholder="Write your message here..."
-                      rows="4"
-                      value={contactForm.message}
-                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      className="w-full px-4 py-3.5 dark:bg-slate-800/50 bg-slate-50 border dark:border-slate-600/50 border-slate-200 rounded-xl dark:text-white text-slate-900 dark:placeholder-slate-400 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 resize-none"
-                      required
-                    ></textarea>
-                  </div>
-
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmittingContact}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full dark:bg-gradient-to-r dark:from-cyan-600 dark:to-emerald-600 dark:hover:from-cyan-500 dark:hover:to-emerald-500 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-cyan-500/25 disabled:opacity-50"
-                  >
-                    {isSubmittingContact ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <FaPaperPlane />
-                        <span>Send Message</span>
-                      </>
-                    )}
-                  </motion.button>
-                </form>
+            <form onSubmit={handleContactSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-white/70 mb-2 flex items-center gap-2">
+                  <FaUser className="text-[#00B4D8]" />
+                  Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-black/60 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-[#00B4D8] focus:outline-none focus:ring-1 focus:ring-[#00B4D8] transition-colors"
+                  required
+                />
               </div>
-            </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-white/70 mb-2 flex items-center gap-2">
+                  <FaEnvelope className="text-[#00B4D8]" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-black/60 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-[#00B4D8] focus:outline-none focus:ring-1 focus:ring-[#00B4D8] transition-colors"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-white/70 mb-2 flex items-center gap-2">
+                  <FaComment className="text-[#00B4D8]" />
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  placeholder="Project Inquiry / Job Opportunity"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-black/60 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-[#00B4D8] focus:outline-none focus:ring-1 focus:ring-[#00B4D8] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-white/70 mb-2 flex items-center gap-2">
+                  <FaPaperPlane className="text-[#00B4D8]" />
+                  Message
+                </label>
+                <textarea
+                  placeholder="Write your message here..."
+                  rows="4"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-black/60 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-[#00B4D8] focus:outline-none focus:ring-1 focus:ring-[#00B4D8] transition-colors resize-none"
+                  required
+                ></textarea>
+              </div>
+
+              <motion.button
+                type="submit"
+                disabled={isSubmittingContact}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-[#00B4D8] hover:bg-[#0090ad] text-black font-bold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-[#00B4D8]/20 disabled:opacity-50"
+              >
+                {isSubmittingContact ? (
+                  <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FaPaperPlane />
+                    <span>Send Message</span>
+                  </>
+                )}
+              </motion.button>
+            </form>
           </motion.div>
 
           {/* Right Side - Direct Contact Info & Links */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="space-y-8 flex flex-col justify-between"
           >
-            <div className="dark:bg-slate-900/80 bg-white backdrop-blur-xl rounded-3xl p-8 border dark:border-slate-700/50 border-slate-100 shadow-xl space-y-6">
-              <h3 className="text-2xl font-bold dark:text-white text-slate-900">Contact Information</h3>
+            <div className="bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 sm:p-10 border border-white/10 space-y-6">
+              <h3 className="text-2xl font-bold text-white">Contact Information</h3>
               
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-2xl dark:bg-slate-800/50 bg-slate-50">
-                  <div className="p-3 bg-cyan-500/20 text-cyan-400 rounded-xl">
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <div className="p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20">
                     <FaEnvelope className="text-xl" />
                   </div>
                   <div>
-                    <p className="text-xs dark:text-slate-400 text-slate-500 font-semibold uppercase">Email</p>
-                    <a href="mailto:zeeshan@comsats.edu.pk" className="dark:text-white text-slate-800 font-medium hover:text-cyan-400 transition-colors">
+                    <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">Email</p>
+                    <a href="mailto:zeeshan@comsats.edu.pk" className="text-white font-medium hover:text-[#00B4D8] transition-colors">
                       zeeshan@comsats.edu.pk
                     </a>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 rounded-2xl dark:bg-slate-800/50 bg-slate-50">
-                  <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <div className="p-3 bg-[#00B4D8]/10 text-[#00B4D8] rounded-xl border border-[#00B4D8]/20">
                     <FaMapMarkerAlt className="text-xl" />
                   </div>
                   <div>
-                    <p className="text-xs dark:text-slate-400 text-slate-500 font-semibold uppercase">Location</p>
-                    <p className="dark:text-white text-slate-800 font-medium">COMSATS University, Lahore, Pakistan</p>
+                    <p className="text-xs text-white/40 font-semibold uppercase tracking-wider">Location</p>
+                    <p className="text-white font-medium">COMSATS University, Lahore, Pakistan</p>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-lg font-bold dark:text-white text-slate-900 mb-4">Connect with me</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {socialLinks.map((social) => (
+              {/* Social Links */}
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-sm text-white/50 mb-4 font-semibold uppercase tracking-wider">Connect on Socials</p>
+                <div className="flex gap-4">
+                  {socialLinks.map((s, i) => (
                     <a
-                      key={social.name}
-                      href={social.url}
+                      key={i}
+                      href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex items-center gap-4 p-4 bg-gradient-to-r ${social.color} rounded-2xl text-white transition-all duration-300 ${social.hoverColor} hover:shadow-xl hover:-translate-y-1`}
+                      className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-[#00B4D8] hover:border-[#00B4D8]/40 hover:bg-[#00B4D8]/10 transition-all duration-300"
                     >
-                      <div className="text-2xl">{social.icon}</div>
-                      <span className="font-semibold">{social.name}</span>
+                      <span className="text-lg">{s.icon}</span>
+                      <span className="text-sm font-semibold">{s.name}</span>
                     </a>
                   ))}
                 </div>
@@ -272,27 +222,7 @@ const Contact = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Admin Dashboard & Login Modals */}
-      <AnimatePresence>
-        {isAdminOpen && (
-          <AdminDashboard
-            isOpen={isAdminOpen}
-            onClose={() => setIsAdminOpen(false)}
-          />
-        )}
-        {isLoginOpen && (
-          <AdminLogin
-            isOpen={isLoginOpen}
-            onClose={() => setIsLoginOpen(false)}
-            onSuccess={() => {
-              setIsLoginOpen(false);
-              setIsAdminOpen(true);
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </section>
+    </div>
   );
 };
 

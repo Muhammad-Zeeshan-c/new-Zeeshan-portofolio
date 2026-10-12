@@ -1,49 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Linkedin } from 'lucide-react';
-import Spline from '@splinetool/react-spline';
 
 const Preloader = ({ onFinished }) => {
-  const [typedText, setTypedText] = useState('');
-  const [showContent, setShowContent] = useState(false);
+  const [typedIndex, setTypedIndex] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
-  const [isAssetLoaded, setIsAssetLoaded] = useState(false);
   const fullText = "ZeeshanKhalid.com";
 
-  // Called when the Spline scene finishes loading
-  const handleAssetLoad = () => {
-    setIsAssetLoaded(true);
-  };
-
-  // Safety fallback: if Spline takes > 8 seconds, proceed anyway
+  // Smooth, uninterrupted typewriter cadence
   useEffect(() => {
-    const fallback = setTimeout(() => setIsAssetLoaded(true), 8000);
-    return () => clearTimeout(fallback);
-  }, []);
+    const interval = setInterval(() => {
+      setTypedIndex((prev) => {
+        if (prev < fullText.length) {
+          return prev + 1;
+        } else {
+          clearInterval(interval);
+          return prev;
+        }
+      });
+    }, 75);
 
-  useEffect(() => {
-    const initialTimer = setTimeout(() => {
-      setShowContent(true);
-    }, 500);
-    return () => clearTimeout(initialTimer);
-  }, []);
+    return () => clearInterval(interval);
+  }, [fullText.length]);
 
+  // Once typing completes 100%, pause 1 second for reading, then smoothly fade out
   useEffect(() => {
-    if (showContent) {
-      if (typedText.length < fullText.length) {
-        const typingTimer = setTimeout(() => {
-          setTypedText(fullText.slice(0, typedText.length + 1));
-        }, 120);
-        return () => clearTimeout(typingTimer);
-      } else if (typedText.length === fullText.length && isAssetLoaded) {
-        const exitTimer = setTimeout(() => {
-          setFadeOut(true);
-          setTimeout(onFinished, 1000);
-        }, 1500);
-        return () => clearTimeout(exitTimer);
-      }
+    if (typedIndex === fullText.length) {
+      const exitTimer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(onFinished, 600);
+      }, 1000);
+      return () => clearTimeout(exitTimer);
     }
-  }, [typedText, showContent, fullText, onFinished, isAssetLoaded]);
+  }, [typedIndex, fullText.length, onFinished]);
+
+  const typedText = fullText.slice(0, typedIndex);
 
   return (
     <AnimatePresence>
@@ -51,54 +42,76 @@ const Preloader = ({ onFinished }) => {
         <motion.div
           exit={{
             opacity: 0,
-            filter: 'blur(10px)',
-            transition: { duration: 1, ease: 'easeInOut' }
+            scale: 0.98,
+            filter: 'blur(8px)',
+            transition: { duration: 0.6, ease: 'easeInOut' }
           }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center dark:text-white text-slate-800 dark:bg-[#060010] bg-zinc-50"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center text-white bg-[#000000] overflow-hidden select-none"
         >
-          {showContent && (
+          <div className="text-center relative z-10 p-6 flex flex-col items-center justify-center max-w-lg w-full">
+            {/* Glowing Accent Badge */}
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-              className="text-center relative z-10 p-4"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="mb-6 flex items-center justify-center w-16 h-16 rounded-2xl bg-white/[0.03] border border-[#00B4D8]/30 shadow-[0_0_30px_rgba(0,180,216,0.15)]"
             >
-              <div className="flex justify-center mb-2 mt-[-24px] md:mt-[-32px]">
-                <div className="w-[320px] h-[180px] md:w-[480px] md:h-[260px]">
-                  <Spline
-                    scene="https://prod.spline.design/FcZ66SFMX1YbF-0I/scene.splinecode"
-                    onLoad={handleAssetLoad}
-                  />
-                </div>
-              </div>
-              <motion.h1
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1, transition: { duration: 0.8, delay: 0.2, ease: "easeOut" } }}
-                className="text-4xl md:text-6xl font-moderniz font-bold mb-4"
-              >
-                Muhammad Zeeshan
-              </motion.h1>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: 0.8, delay: 0.5 } }}
-                className="font-cascadia text-lg md:text-xl dark:text-gray-400 text-slate-500 mb-8 break-all"
-              >
-                <span>{typedText}</span>
-                <span className="animate-blink">|</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.8 } }}
-                className="flex justify-center gap-6"
-              >
-                <a href="https://github.com/Muhammad-Zeeshan-c/" target="_blank" rel="noopener noreferrer" className="dark:hover:text-[#00ffdc] hover:text-cyan-600 transition-all duration-300 transform hover:scale-110">
-                  <Github size={32} />
-                </a>
-                <a href="https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/" target="_blank" rel="noopener noreferrer" className="dark:hover:text-[#00ffdc] hover:text-cyan-600 transition-all duration-300 transform hover:scale-110">
-                  <Linkedin size={32} />
-                </a>
-              </motion.div>
+              <span className="text-2xl font-bold text-[#00B4D8] font-mono">Z</span>
             </motion.div>
-          )}
+
+            {/* Name Heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+              className="text-4xl md:text-6xl font-bold mb-4 tracking-tight"
+            >
+              Muhammad <span className="text-[#00B4D8]">Zeeshan</span>
+            </motion.h1>
+
+            {/* Typewriter URL */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-lg md:text-xl text-white/70 mb-8 font-mono flex items-center justify-center h-8"
+            >
+              <span>{typedText}</span>
+              <span className="animate-blink text-[#00B4D8] font-bold ml-0.5">|</span>
+            </motion.div>
+
+            {/* Social Icons */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex justify-center gap-6"
+            >
+              <a
+                href="https://github.com/Muhammad-Zeeshan-c/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/70 hover:text-[#00B4D8] transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-white/5"
+                title="GitHub"
+              >
+                <Github size={24} />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/70 hover:text-[#00B4D8] transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-white/5"
+                title="LinkedIn"
+              >
+                <Linkedin size={24} />
+              </a>
+            </motion.div>
+          </div>
+
+          {/* Ambient Background Glow */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#00B4D8]/10 rounded-full blur-[140px]" />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

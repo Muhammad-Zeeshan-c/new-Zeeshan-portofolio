@@ -4,18 +4,18 @@ import { useTheme } from '../contexts/ThemeContext';
 
 export const StaggeredMenu = ({
     position = 'right',
-    colors = ['#0891b2', '#06b6d4'], // Cyan/Teal defaults to match site
+    colors = ['#000000', '#0a0a0a', '#111111'],
     items = [],
     socialItems = [],
     displaySocials = true,
     displayItemNumbering = true,
     className,
-    logoUrl = '/src/assets/images/BGZENBGIJObulat.png', // Use site logo default
+    logoUrl = '/src/assets/images/BGZENBGIJObulat.png',
     menuButtonColor = '#fff',
     openMenuButtonColor = '#fff',
     changeMenuColorOnOpen = true,
     isFixed = false,
-    accentColor = '#06b6d4', // Cyan accent
+    accentColor = '#00B4D8',
     closeOnClickAway = true,
     onMenuOpen,
     onMenuClose,
@@ -380,15 +380,12 @@ export const StaggeredMenu = ({
                 <aside
                     id="staggered-menu-panel"
                     ref={panelRef}
-                    className={`staggered-menu-panel absolute top-0 right-0 h-full flex flex-col p-[2em_2em_2em_2em] overflow-y-auto z-10 backdrop-blur-[16px] pointer-events-auto transition-colors duration-500
-                        ${theme === 'dark' ? 'bg-[#11142F]/80 text-white' : 'bg-white/80 text-slate-800'}`}
+                    className="staggered-menu-panel absolute top-0 right-0 h-full flex flex-col p-[2em_2em_2em_2em] overflow-y-auto z-10 backdrop-blur-[16px] pointer-events-auto transition-colors duration-500 bg-[#000000]/95 text-white border-l border-white/10"
                     style={{ WebkitBackdropFilter: 'blur(16px)' }}
-                    // Use `inert` instead of `aria-hidden` – inert also prevents focus
-                    // from landing on hidden elements, avoiding the WAI-ARIA violation.
                     inert={!open ? "" : undefined}
                 >
                     <div className="flex justify-end mb-4">
-                        <button onClick={closeMenu} className={`text-3xl transition-colors ${theme === 'dark' ? 'text-white hover:text-cyan-400' : 'text-slate-800 hover:text-cyan-500'}`}>
+                        <button onClick={closeMenu} className="text-3xl text-white/70 hover:text-[#00B4D8] transition-colors">
                             &times;
                         </button>
                     </div>
@@ -403,8 +400,7 @@ export const StaggeredMenu = ({
                                 items.map((it, idx) => (
                                     <li className="sm-panel-itemWrap relative overflow-hidden leading-none" key={it.label + idx}>
                                         <a
-                                            className={`sm-panel-item relative font-semibold text-[3rem] cursor-pointer leading-none tracking-[-2px] uppercase transition-[all] duration-150 ease-linear inline-block no-underline pr-[1.4em]
-                                                ${theme === 'dark' ? 'text-white hover:text-[#00ffdc]' : 'text-black hover:text-cyan-600'}`}
+                                            className="sm-panel-item relative font-semibold text-[3rem] cursor-pointer leading-none tracking-[-2px] uppercase transition-[all] duration-150 ease-linear inline-block no-underline pr-[1.4em] text-white hover:text-[#00B4D8]"
                                             href={it.link}
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -435,7 +431,7 @@ export const StaggeredMenu = ({
 
                         {displaySocials && socialItems && socialItems.length > 0 && (
                             <div className="sm-socials mt-auto pt-8 flex flex-col gap-3" aria-label="Social links">
-                                <h3 className="sm-socials-title m-0 text-base font-medium [color:var(--sm-accent,#ff0000)]">Socials</h3>
+                                <h3 className="sm-socials-title m-0 text-base font-medium text-[#00B4D8]">Socials</h3>
                                 <ul
                                     className="sm-socials-list list-none m-0 p-0 flex flex-row items-center gap-4 flex-wrap"
                                     role="list"
@@ -446,8 +442,7 @@ export const StaggeredMenu = ({
                                                 href={s.link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className={`sm-socials-link text-[1.2rem] font-medium no-underline relative inline-block py-[2px] transition-[color,opacity] duration-300 ease-linear
-                                                    ${theme === 'dark' ? 'text-slate-300 hover:text-[#00ffdc]' : 'text-[#111] hover:text-cyan-600'}`}
+                                                className="sm-socials-link text-[1.2rem] font-medium no-underline relative inline-block py-[2px] transition-[color,opacity] duration-300 ease-linear text-white/70 hover:text-[#00B4D8]"
                                             >
                                                 {s.label}
                                             </a>

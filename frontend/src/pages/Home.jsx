@@ -1,14 +1,15 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion } from "framer-motion";
-import { FaGithub, FaInstagram, FaLinkedin, FaDownload, FaBriefcase, FaCode, FaCertificate, FaGlobe, FaArrowRight, FaCube } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaDownload, FaBriefcase, FaCode, FaCertificate, FaGlobe, FaArrowRight, FaCube } from 'react-icons/fa';
 import { AnimatedGradientTextDemo } from '../components/AnimatedGradientTextDemo';
 import GradientText from '../components/GradientText';
 import TextGenerateEffect from "../components/text-generate-effect";
 import Skills from '../components/Skills';
 import { VelocityScroll } from '../components/VelocityScroll';
 import { ButtonMovingBorder } from '../components/MovingBorderButton';
+import ParticlesBackground from '../components/ParticlesBackground';
+import Footer from '../components/Footer';
 import apiService from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 // Lazy loaded heavy 3D and section components for peak loading performance
 const Lanyard = lazy(() => import('../components/Lanyard/Lanyard'));
@@ -17,7 +18,6 @@ const ProjectSection = lazy(() => import('../components/ProjectSection'));
 const Contact = lazy(() => import('../components/Contact'));
 
 const Home = () => {
-    const { theme } = useTheme();
     const [projectCount, setProjectCount] = useState(0);
     const [certificateCount, setCertificateCount] = useState(0);
     const [cvUrl, setCvUrl] = useState('');
@@ -44,9 +44,7 @@ const Home = () => {
 
     const [is3dEnabled, setIs3dEnabled] = useState(() => {
         if (typeof window !== 'undefined') {
-            // Only disable on actual phones or very small screens (< 768px)
             const isMobilePhone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && window.innerWidth < 768;
-            // Check WebGL support
             const canvas = document.createElement('canvas');
             const hasWebGL = !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
             return !isMobilePhone && hasWebGL;
@@ -66,198 +64,245 @@ const Home = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative z-10 px-8 max-w-7xl mx-auto"
+            className="relative z-10 w-full bg-[#000000] text-white"
         >
+            {/* 3D Assets Toggle Button */}
             <button
                 onClick={toggle3dAssets}
                 title={`Toggle 3D Assets (${is3dEnabled ? 'On' : 'Off'})`}
-                className={`fixed top-24 right-4 z-50 p-3 rounded-full border backdrop-blur-sm transition-all duration-300 ease-in-out hover:scale-110
-          ${is3dEnabled
-                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_12px_2px_#00ffdc80]'
-                        : 'dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-400 bg-white border-slate-200 text-slate-600 shadow-sm'
-                    }`}
+                className={`fixed top-24 right-4 z-50 p-3 rounded-full border backdrop-blur-sm transition-all duration-300 ease-in-out hover:scale-110 ${
+                    is3dEnabled
+                        ? 'bg-[#00B4D8]/20 border-[#00B4D8] text-[#00B4D8] shadow-[0_0_15px_rgba(0,180,216,0.3)]'
+                        : 'bg-black/80 border-white/10 text-white/50 shadow-sm'
+                }`}
             >
                 <FaCube className="h-5 w-5" />
             </button>
 
-            <section id="home" className="flex flex-col md:flex-row items-center gap-10 pt-20 pb-16 lg:pt-0 lg:pb-20">
-                <div className="flex-1 dark:text-white text-slate-800 space-y-6 pt-16 md:pt-40 order-last md:order-none text-center md:text-left flex flex-col items-center md:items-start">
-                    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}>
-                        <AnimatedGradientTextDemo />
-                    </motion.div>
-                    <motion.h1
-                        initial={{ opacity: 0, x: -60 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
-                        className="text-4xl md:text-4xl font-moderniz font-bold leading-tight select-none main-heading"
-                        style={{
-                            color: theme === 'dark' ? "#00ffdc" : "#0f172a",
-                            textShadow: theme === 'dark'
-                                ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc"
-                                : "none"
-                        }}
-                    >
-                        WELCOME TO MY
-                        <span style={{ display: 'block', marginTop: '0.4em' }}>PORTFOLIO</span>
-                    </motion.h1>
-                    <motion.div initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}>
-                        <GradientText colors={["#40f2ffff", "#4079ff", "#40fffcff", "#4079ff", "#40f9ffff"]} animationSpeed={3} className="custom-class font-cascadia font-bold" />
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}>
-                        <TextGenerateEffect words={'I craft responsive and visually engaging websites using React, Tailwind CSS, and modern web technologies.'} />
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}>
-                        <Skills />
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.0, ease: "easeOut" }} className="flex flex-row gap-4 mt-8">
-                        <a href="https://github.com/Muhammad-Zeeshan-c/" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
-                            <FaGithub className="h-6 w-6 dark:text-slate-400 text-slate-600 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300" />
-                        </a>
-                        <a href="https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" className="group relative flex h-12 w-12 items-center justify-center rounded-full border dark:border-slate-700 border-slate-200 dark:bg-slate-900/[0.8] bg-white text-slate-600 dark:text-white transition-all duration-300 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md dark:hover:shadow-[0_0_24px_2px_#00ffdc]">
-                            <FaLinkedin className="h-6 w-6 dark:text-slate-400 text-slate-600 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300" />
-                        </a>
-                    </motion.div>
-                </div>
-
-                {/* 3. Render Lanyard secara kondisional */}
-                <div className="hidden lg:flex flex-1 justify-center h-[600px] w-full order-first lg:order-none">
-                    {is3dEnabled && (
-                        <Suspense fallback={<div className="h-[600px] w-full flex items-center justify-center text-slate-500 font-cascadia">Loading 3D Card...</div>}>
-                            <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} fov={18} transparent={true} />
-                        </Suspense>
-                    )}
-                </div>
-            </section>
-
-            <section
-                id="about"
-                className="py-12 md:py-18 gap-0 w-full mx-0 pt-20"
-                style={{ width: "100vw", position: "relative", left: "50%", right: "50%", marginLeft: "-50vw", marginRight: "-50vw" }}
-            >
-                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, ease: "easeOut" }} className="text-center">
-                    <div className="relative flex w-full flex-col items-center justify-center overflow-hidden mb-20">
-                        <VelocityScroll defaultVelocity={1.5} numRows={1} className="max-w-full">
-                            <span className="font-moderniz font-bold" style={{ fontSize: "2.5rem", lineHeight: "1.1", color: theme === 'dark' ? "#00ffdc" : "#0891b2", textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none", background: "none", WebkitBackgroundClip: "unset", WebkitTextFillColor: "unset", filter: theme === 'dark' ? 'none' : 'none', opacity: theme === 'dark' ? 1 : 0.3 }}>
-                                MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering <span style={{fontFamily: 'sans-serif'}}>@</span> COMSATS ✦ Exploring AI &amp; Machine Learning
-                            </span>
-                        </VelocityScroll>
-                        <div className={`pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r ${theme === 'dark' ? 'from-[#060010]' : 'from-slate-50'}`}></div>
-                        <div className={`pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l ${theme === 'dark' ? 'from-[#060010]' : 'from-slate-50'}`}></div>
-                        <VelocityScroll defaultVelocity={-1.5} numRows={1} className="max-w-full">
-                            <span className="font-moderniz font-bold" style={{ fontSize: "2.5rem", lineHeight: "1.1", color: theme === 'dark' ? "#00ffdc" : "#0891b2", textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none", background: "none", WebkitBackgroundClip: "unset", WebkitTextFillColor: "unset", filter: theme === 'dark' ? 'none' : 'none', opacity: theme === 'dark' ? 1 : 0.3 }}>
-                                MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering <span style={{fontFamily: 'sans-serif'}}>@</span> COMSATS ✦ Exploring AI &amp; Machine Learning
-                            </span>
-                        </VelocityScroll>
-                    </div>
-                    <p className="text-lg dark:text-cyan-200/70 text-slate-600 mt-2 font-cascadia px-1 mb-20">
-                        ✧ Passionate about coding and creative technology ✧
-                    </p>
-                </motion.div>
-
-                <div className="flex flex-col md:flex-row items-center justify-center">
-                    {is3dEnabled && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true, amount: 0.3 }}
-                            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                            className="md:w-1/3 flex justify-center"
-                        >
-                            <div className="w-full h-[420px] md:h-[530px] flex items-center justify-center">
-                                <Suspense fallback={<div className="h-[420px] flex items-center justify-center text-slate-500 font-cascadia">Loading 3D Robot...</div>}>
-                                    <Spline scene="https://prod.spline.design/FcZ66SFMX1YbF-0I/scene.splinecode" />
-                                </Suspense>
-                            </div>
+            {/* ======================================================== */}
+            {/* SECTION 1: HERO (#home) - Black Background + Particles    */}
+            {/* ======================================================== */}
+            <section id="home" className="relative w-full bg-[#000000] pt-24 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
+                {/* Interactive particle background - only in hero section */}
+                <ParticlesBackground />
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center gap-10">
+                    <div className="flex-1 space-y-6 pt-12 md:pt-28 order-last md:order-none text-center md:text-left flex flex-col items-center md:items-start">
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}>
+                            <AnimatedGradientTextDemo />
                         </motion.div>
-                    )}
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
-                        transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                        className={`dark:text-white text-slate-800 text-center px-4 md:px-8 transition-all duration-700 md:w-3/4 lg:w-2/3 max-w-4xl ${is3dEnabled ? 'md:text-left md:w-1/2' : 'md:w-3/4 lg:w-2/3 max-w-4xl'}`}
-                    >
-                        <p className="text-2xl dark:text-gray-300 text-slate-500 font-moderniz my" style={{ textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none" }}>Hello, I'm</p>
-                        <h3 className="text-4xl font-bold dark:text-white text-slate-900 my-2 font-moderniz" style={{ textShadow: theme === 'dark' ? "2px 2px 0 #000754, 4px 4px 0 #4079ff, 0 4px 12px #40ffaa, 0 1px 0 #00ffdc" : "none" }}>Zeeshan Khalid</h3>
-                        <p className="dark:text-white/80 text-slate-600 leading-relaxed mt-4 font-cascadia text-justify">
-                            I'm a Software Engineering student at COMSATS University Lahore, a MERN Stack Developer, and an aspiring AI Engineer passionate about building modern, scalable, and user-focused applications. With a strong interest in Artificial Intelligence and Machine Learning, I'm exploring ways to integrate intelligent solutions into real-world products.
-                        </p>
-                        <p className="dark:text-white/80 text-slate-600 leading-relaxed mt-4 font-cascadia text-justify">
-                            I enjoy solving problems, exploring new technologies, and turning ideas into meaningful digital experiences. I'm continuously developing my skills in software engineering and AI to build solutions that make a difference.
-                        </p>
-                        <p className="dark:text-cyan-300/90 text-cyan-700 leading-relaxed mt-4 font-cascadia font-semibold text-justify">
-                            Have an idea, a project, or an opportunity to collaborate? Let's connect and make it happen.
-                        </p>
-                        <div className="my-6 dark:bg-slate-900/50 bg-slate-50 border-l-4 dark:border-[#00ffdc] border-cyan-600 p-4 rounded-r-lg italic dark:text-white/70 text-slate-700 font-cascadia dark:shadow-none shadow-md">
-                            "Whoever strives shall succeed."
-                        </div>
-                        <div className="flex flex-row sm:flex-row gap-4 mt-8 justify-center md:justify-start items-center">
-                            <ButtonMovingBorder 
-                                as="a" 
-                                href={cvUrl || '#'} 
-                                target={cvUrl ? "_blank" : "_self"} 
-                                rel="noopener noreferrer" 
-                                download={cvUrl ? true : undefined} 
-                                onClick={(e) => {
-                                    if (!cvUrl) {
-                                        e.preventDefault();
-                                        alert('CV will be available soon!');
-                                    }
-                                }}
-                                duration={3000} 
-                                borderRadius="0.75rem" 
-                                className="dark:bg-slate-900/[0.8] bg-white border dark:border-slate-800 border-slate-200 dark:text-white text-slate-800 font-semibold flex items-center justify-center gap-2 transition-all duration-300 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-[0_0_24px_8px_#40ffaa]">
-                                <FaDownload /> Download CV
-                            </ButtonMovingBorder>
-                            <ButtonMovingBorder as="a" href="#projects" duration={3000} borderRadius="0.75rem" className="dark:bg-slate-900/[0.8] bg-white border dark:border-slate-800 border-slate-200 dark:text-white text-slate-800 font-semibold flex items-center justify-center gap-2 transition-all duration-300 dark:shadow-none shadow-md hover:shadow-lg dark:hover:shadow-[0_0_24px_8px_#40ffaa]">
-                                <FaBriefcase /> View Projects
-                            </ButtonMovingBorder>
-                        </div>
-                    </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+                            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight select-none tracking-tight"
+                        >
+                            WELCOME TO MY
+                            <span className="block mt-2 text-[#00B4D8]">PORTFOLIO</span>
+                        </motion.h1>
+
+                        <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}>
+                            <GradientText colors={["#00B4D8", "#66d0ef", "#ffffff", "#00B4D8"]} animationSpeed={4} className="font-semibold text-xl lg:text-3xl" />
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}>
+                            <TextGenerateEffect words={'I craft responsive and visually engaging websites using React, Tailwind CSS, and modern web technologies.'} />
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}>
+                            <Skills />
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.0, ease: "easeOut" }} className="flex flex-row gap-4 mt-8">
+                            <a
+                                href="https://github.com/Muhammad-Zeeshan-c/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="GitHub Profile"
+                                className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-all duration-300 hover:border-[#00B4D8] hover:bg-[#00B4D8]/10 hover:text-[#00B4D8] hover:shadow-[0_0_15px_rgba(0,180,216,0.25)]"
+                            >
+                                <FaGithub className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                            </a>
+                            <a
+                                href="https://www.linkedin.com/in/muhammad-zeeshan-khalid-665b3a327/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="LinkedIn Profile"
+                                className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-all duration-300 hover:border-[#00B4D8] hover:bg-[#00B4D8]/10 hover:text-[#00B4D8] hover:shadow-[0_0_15px_rgba(0,180,216,0.25)]"
+                            >
+                                <FaLinkedin className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                            </a>
+                        </motion.div>
+                    </div>
+
+                    {/* 3D Lanyard Card */}
+                    <div className="hidden lg:flex flex-1 justify-center h-[600px] w-full order-first lg:order-none">
+                        {is3dEnabled && (
+                            <Suspense fallback={<div className="h-[600px] w-full flex items-center justify-center text-white/40">Loading 3D Card...</div>}>
+                                <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} fov={18} transparent={true} />
+                            </Suspense>
+                        )}
+                    </div>
                 </div>
+            </section>
 
-                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-10 px-4 md:px-0">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="group relative p-6 rounded-2xl dark:bg-slate-900/90 bg-white border dark:border-slate-700/50 border-slate-200 dark:shadow-none shadow-lg transition-all duration-300 hover:border-cyan-400/50 hover:shadow-xl dark:hover:shadow-[0_0_24px_0px_#00ffdc50] cursor-pointer">
-                            <div className="flex justify-between items-start">
-                                <div className="flex flex-col">
-                                    <div className="p-3 mb-4 rounded-full dark:bg-slate-800/80 bg-slate-50 border dark:border-slate-700/60 border-slate-100 w-max dark:group-hover:bg-cyan-900/50 group-hover:bg-cyan-50 group-hover:border-cyan-200 transition-all duration-300">
-                                        <div className="text-2xl dark:text-slate-400 text-slate-500 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors duration-300">{stat.icon}</div>
-                                    </div>
-                                    <h3 className="text-sm font-semibold uppercase tracking-wider dark:text-slate-400 text-slate-500 group-hover:text-cyan-700 dark:group-hover:text-slate-300 transition-colors duration-300">{stat.title}</h3>
-                                    <p className="text-xs dark:text-slate-500 text-slate-400 mt-1">{stat.description}</p>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <p className="text-5xl font-bold dark:text-white text-slate-900 transition-all duration-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-300">{stat.value}</p>
-                                    <FaArrowRight className="text-slate-400 mt-auto group-hover:text-cyan-500 transition-all duration-300 -rotate-45" />
-                                </div>
-                            </div>
+            {/* ======================================================== */}
+            {/* SECTION 2: ABOUT (#about) - Black Background             */}
+            {/* ======================================================== */}
+            <section id="about" className="w-full bg-[#000000] py-16 md:py-24">
+                <div className="w-full">
+                    {/* Velocity Marquee */}
+                    <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, ease: "easeOut" }} className="text-center">
+                        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden mb-16">
+                            <VelocityScroll defaultVelocity={1.5} numRows={1} className="max-w-full">
+                                <span className="font-bold tracking-tight text-[#00B4D8]" style={{ fontSize: "2.25rem", lineHeight: "1.2" }}>
+                                    MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering @ COMSATS ✦ Exploring AI &amp; Machine Learning
+                                </span>
+                            </VelocityScroll>
+                            <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-[#000000] to-transparent"></div>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-[#000000] to-transparent"></div>
+                            <VelocityScroll defaultVelocity={-1.5} numRows={1} className="max-w-full mt-2">
+                                <span className="font-bold tracking-tight text-[#00B4D8]" style={{ fontSize: "2.25rem", lineHeight: "1.2" }}>
+                                    MERN Stack Developer ✦ Aspiring AI engineer ✦ Software Engineering @ COMSATS ✦ Exploring AI &amp; Machine Learning
+                                </span>
+                            </VelocityScroll>
                         </div>
-                    ))}
-                </motion.div>
+                        <p className="text-base sm:text-lg text-white/60 mt-2 px-1 mb-16">
+                            ✧ Passionate about coding and creative technology ✧
+                        </p>
+                    </motion.div>
+
+                    {/* About Content */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8">
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-10">
+                            {is3dEnabled && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                                    className="md:w-1/3 flex justify-center"
+                                >
+                                    <div className="w-full h-[420px] md:h-[530px] flex items-center justify-center">
+                                        <Suspense fallback={<div className="h-[420px] flex items-center justify-center text-white/40">Loading 3D Robot...</div>}>
+                                            <Spline scene="https://prod.spline.design/FcZ66SFMX1YbF-0I/scene.splinecode" />
+                                        </Suspense>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                                className={`text-white text-center md:text-left transition-all duration-700 ${is3dEnabled ? 'md:w-2/3' : 'max-w-4xl mx-auto'}`}
+                            >
+                                <p className="text-xl md:text-2xl text-white/60 font-medium">Hello, I'm</p>
+                                <h3 className="text-3xl md:text-5xl font-bold text-white my-2 tracking-tight">Zeeshan Khalid</h3>
+                                <p className="text-white/80 leading-relaxed mt-4 text-justify">
+                                    I'm a Software Engineering student at COMSATS University Lahore, a MERN Stack Developer, and an aspiring AI Engineer passionate about building modern, scalable, and user-focused applications. With a strong interest in Artificial Intelligence and Machine Learning, I'm exploring ways to integrate intelligent solutions into real-world products.
+                                </p>
+                                <p className="text-white/80 leading-relaxed mt-4 text-justify">
+                                    I enjoy solving problems, exploring new technologies, and turning ideas into meaningful digital experiences. I'm continuously developing my skills in software engineering and AI to build solutions that make a difference.
+                                </p>
+                                <p className="text-[#00B4D8] leading-relaxed mt-4 font-semibold text-justify">
+                                    Have an idea, a project, or an opportunity to collaborate? Let's connect and make it happen.
+                                </p>
+                                <div className="my-6 bg-white/[0.03] border-l-4 border-[#00B4D8] p-4 rounded-r-lg italic text-white/80 border border-white/5">
+                                    "Whoever strives shall succeed."
+                                </div>
+                                <div className="flex flex-row gap-4 mt-8 justify-center md:justify-start items-center">
+                                    <ButtonMovingBorder 
+                                        as="button"
+                                        type="button"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            if (!cvUrl) {
+                                                alert('CV will be available soon!');
+                                                return;
+                                            }
+                                            try {
+                                                const response = await fetch(cvUrl);
+                                                const blob = await response.blob();
+                                                const url = URL.createObjectURL(blob);
+                                                const link = document.createElement('a');
+                                                link.href = url;
+                                                link.download = 'Zeeshan_cv.pdf';
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                document.body.removeChild(link);
+                                                URL.revokeObjectURL(url);
+                                            } catch {
+                                                window.open(cvUrl, '_blank');
+                                            }
+                                        }}
+                                        duration={3000} 
+                                        borderRadius="0.75rem" 
+                                        className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)]">
+                                        <FaDownload /> Download CV
+                                    </ButtonMovingBorder>
+                                    <ButtonMovingBorder as="a" href="#projects" duration={3000} borderRadius="0.75rem" className="bg-[#000000] border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:border-[#00B4D8]/50 hover:shadow-[0_0_15px_rgba(0,180,216,0.3)]">
+                                        <FaBriefcase /> View Projects
+                                    </ButtonMovingBorder>
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        {/* Stats Cards */}
+                        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16 px-4 md:px-0">
+                            {stats.map((stat, index) => (
+                                <div key={index} className="group relative p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#00B4D8]/40 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,180,216,0.2)] cursor-pointer">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex flex-col">
+                                            <div className="p-3 mb-4 rounded-xl bg-white/5 border border-white/10 w-max group-hover:bg-[#00B4D8]/10 group-hover:border-[#00B4D8]/30 transition-all duration-300">
+                                                <div className="text-2xl text-[#00B4D8]">{stat.icon}</div>
+                                            </div>
+                                            <h3 className="text-sm font-semibold uppercase tracking-wider text-white/70 group-hover:text-white transition-colors duration-300">{stat.title}</h3>
+                                            <p className="text-xs text-white/40 mt-1">{stat.description}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <p className="text-4xl md:text-5xl font-bold text-white transition-all duration-300 group-hover:text-[#00B4D8]">{stat.value}</p>
+                                            <FaArrowRight className="text-white/30 mt-auto group-hover:text-[#00B4D8] transition-all duration-300 -rotate-45" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
+                </div>
             </section>
 
-            <section id="projects" className="md:py-18">
-                <Suspense fallback={<div className="py-20 text-center text-slate-500 font-cascadia">Loading Projects...</div>}>
-                    <ProjectSection />
-                </Suspense>
+            {/* ======================================================== */}
+            {/* SECTION 3: PROJECTS (#projects) - Black Background       */}
+            {/* ======================================================== */}
+            <section id="projects" className="w-full bg-[#000000] py-16 md:py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-8">
+                    <Suspense fallback={<div className="py-20 text-center text-white/40">Loading Projects...</div>}>
+                        <ProjectSection />
+                    </Suspense>
+                </div>
             </section>
 
-            <section id="contact" className="py-20 pb-16">
-                <Suspense fallback={<div className="py-20 text-center text-slate-500 font-cascadia">Loading Contact...</div>}>
-                    <Contact />
-                </Suspense>
+            {/* ======================================================== */}
+            {/* SECTION 4: CONTACT (#contact) - Black Background         */}
+            {/* ======================================================== */}
+            <section id="contact" className="w-full bg-[#000000] py-20 pb-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-8">
+                    <Suspense fallback={<div className="py-20 text-center text-white/40">Loading Contact...</div>}>
+                        <Contact />
+                    </Suspense>
+                </div>
             </section>
 
-            <footer className="py-12 pb-16 text-center text-gray-400 dark:bg-gradient-to-t dark:from-slate-900/50 dark:to-transparent bg-gradient-to-t from-slate-100/50 to-transparent">
-                <div className="text-sm">© {new Date().getFullYear()} Zeeshan Khalid. All rights reserved.</div>
-                <div className="text-xs mt-2">Built with <span className="text-red-500">♥</span> using React, Tailwind CSS, and Framer Motion.</div>
-            </footer>
+            {/* ======================================================== */}
+            {/* FOOTER - Full Footer Component                           */}
+            {/* ======================================================== */}
+            <Footer />
         </motion.div>
     );
 };

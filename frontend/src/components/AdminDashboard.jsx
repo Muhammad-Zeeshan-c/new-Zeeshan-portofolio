@@ -489,8 +489,8 @@ const AdminDashboard = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-gradient-to-r from-cyan-900/30 via-slate-900 to-emerald-900/30">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-1 font-moderniz">Admin Dashboard</h2>
-              <p className="text-slate-400 text-sm font-cascadia">MongoDB Atlas & Cloudinary Powered Portfolio Manager</p>
+              <h2 className="text-3xl font-bold text-white mb-1">Admin Dashboard</h2>
+              <p className="text-white/60 text-sm">MongoDB Atlas & Cloudinary Powered Portfolio Manager</p>
             </div>
             <button
               onClick={onClose}
@@ -527,7 +527,7 @@ const AdminDashboard = ({ isOpen, onClose }) => {
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 gap-4">
                 <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-slate-400 font-cascadia text-sm">Fetching live data from MongoDB Atlas...</p>
+                <p className="text-white/60 text-sm">Fetching live data from MongoDB Atlas...</p>
               </div>
             ) : (
               <>
