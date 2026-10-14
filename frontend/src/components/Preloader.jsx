@@ -5,7 +5,7 @@ import { Github, Linkedin } from 'lucide-react';
 const Preloader = ({ onFinished }) => {
   const [typedIndex, setTypedIndex] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
-  const fullText = "ZeeshanKhalid.com";
+  const fullText = "zeeshanportfolio-website.vercel.app/";
 
   // Smooth, uninterrupted typewriter cadence
   useEffect(() => {
